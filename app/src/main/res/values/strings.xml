@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Headphone Tracker</string>
+    <string name="tracking_status">Tracking Status</string>
+    <string name="today_total">Today\'s Total</string>
+    <string name="hours">Hours</string>
+    <string name="minutes">Minutes</string>
+    <string name="seconds">Seconds</string>
+    <string name="start_tracking">Start Tracking</string>
+    <string name="stop_tracking">Stop Tracking</string>
+    <string name="usage_by_app">Usage by App</string>
+    <string name="daily_stats">Daily Statistics</string>
+    <string name="grant_permission">Grant Usage Access Permission</string>
+    <string name="permission_required">Usage Access permission is required to track headphone usage across apps.</string>
+    <string name="no_data">No data available</string>
+    <string name="service_notification_title">Headphone Usage Tracker</string>
+    <string name="service_notification_text">Tracking headphone usage across apps</string>
+</resources>
+
