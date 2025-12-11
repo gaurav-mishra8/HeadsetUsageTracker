@@ -26,6 +26,15 @@ interface HeadphoneUsageDao {
     """)
     suspend fun getLast7DaysUsage(): List<DailyUsageSummary>
     
+    @Query("""
+        SELECT date, packageName, appName, SUM(duration) as totalDuration 
+        FROM headphone_usage 
+        WHERE date >= :startDate AND date <= :endDate
+        GROUP BY date, packageName, appName
+        ORDER BY date DESC, totalDuration DESC
+    """)
+    suspend fun getUsageForDateRange(startDate: String, endDate: String): List<DetailedUsageSummary>
+    
     @Query("SELECT SUM(duration) FROM headphone_usage WHERE date = :date")
     suspend fun getTotalUsageForDate(date: String): Long?
     
@@ -34,5 +43,11 @@ interface HeadphoneUsageDao {
     
     @Query("DELETE FROM headphone_usage WHERE date < :date")
     suspend fun deleteOldData(date: String)
+    
+    @Query("SELECT * FROM headphone_usage ORDER BY date DESC")
+    suspend fun getAllUsage(): List<HeadphoneUsage>
+    
+    @Query("DELETE FROM headphone_usage")
+    suspend fun deleteAllUsage()
 }
 

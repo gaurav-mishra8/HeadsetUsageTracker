@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="8dp"
+    android:minWidth="80dp"
+    android:maxWidth="100dp">
+
+    <!-- Color Dot -->
+    <View
+        android:id="@+id/legendColorDot"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:background="@drawable/legend_dot" />
+
+    <!-- App Name (2 lines) -->
+    <TextView
+        android:id="@+id/legendAppName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:textSize="12sp"
+        android:textColor="@color/text_primary"
+        android:fontFamily="sans-serif-medium"
+        tools:text="YouTube Music" />
+
+    <!-- Percentage -->
+    <TextView
+        android:id="@+id/legendPercentage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textSize="11sp"
+        android:textColor="@color/text_secondary"
+        tools:text="45%" />
+
+</LinearLayout>
+

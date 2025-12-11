@@ -15,5 +15,6 @@
     <string name="no_data">No data available</string>
     <string name="service_notification_title">Headphone Usage Tracker</string>
     <string name="service_notification_text">Tracking headphone usage across apps</string>
+    <string name="widget_description">Shows today\'s headphone usage at a glance</string>
 </resources>
 

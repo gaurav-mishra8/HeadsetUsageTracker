@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView 
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    android:layout_marginBottom="12dp"
+    app:cardBackgroundColor="@color/card_dark"
+    app:cardCornerRadius="16dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/divider"
+    app:cardElevation="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,47 +19,76 @@
         android:padding="16dp"
         android:gravity="center_vertical">
 
-        <ImageView
-            android:id="@+id/ivAppIcon"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:contentDescription="App Icon" />
+        <!-- App Icon with background -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            app:cardBackgroundColor="@color/surface_elevated"
+            app:cardCornerRadius="14dp"
+            app:strokeWidth="0dp"
+            app:cardElevation="0dp">
 
+            <ImageView
+                android:id="@+id/ivAppIcon"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:contentDescription="App Icon"
+                tools:src="@android:drawable/sym_def_app_icon" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- App Info -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:layout_marginStart="16dp">
+            android:layout_marginStart="14dp">
 
             <TextView
                 android:id="@+id/tvAppName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="App Name"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textSize="15sp"
+                android:textColor="@color/text_primary"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="YouTube Music" />
 
             <TextView
                 android:id="@+id/tvUsageTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="0h 0m"
-                android:textSize="14sp"
-                android:textColor="@android:color/darker_gray" />
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"
+                tools:text="2h 34m" />
 
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvPercentage"
+        <!-- Percentage Badge -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0%"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="@color/primary" />
+            app:cardBackgroundColor="@color/nav_indicator"
+            app:cardCornerRadius="10dp"
+            app:strokeWidth="0dp"
+            app:cardElevation="0dp">
+
+            <TextView
+                android:id="@+id/tvPercentage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:textSize="13sp"
+                android:textColor="@color/primary_light"
+                android:fontFamily="sans-serif-medium"
+                tools:text="45%" />
+
+        </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
-
