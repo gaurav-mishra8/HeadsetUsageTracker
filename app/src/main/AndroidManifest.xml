@@ -50,6 +50,12 @@
             android:exported="false"
             android:theme="@style/Theme.HeadphoneTracker" />
         
+        <activity
+            android:name=".OnboardingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.HeadphoneTracker"
+            android:screenOrientation="portrait" />
+        
         <service
             android:name=".HeadphoneTrackingService"
             android:enabled="true"

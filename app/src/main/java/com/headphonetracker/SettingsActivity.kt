@@ -48,6 +48,7 @@ class SettingsActivity : AppCompatActivity() {
         setupAppearanceSettings()
         setupTrackingSettings()
         setupDataSettings()
+        setupAboutSettings()
         loadStorageInfo()
         loadVersion()
     }
@@ -414,6 +415,12 @@ class SettingsActivity : AppCompatActivity() {
 
             val formattedDuration = formatDuration(totalDuration)
             binding.tvStorageInfo.text = "$recordCount records • $formattedDuration total tracked"
+        }
+    }
+
+    private fun setupAboutSettings() {
+        binding.cardViewOnboarding.setOnClickListener {
+            startActivity(Intent(this, OnboardingActivity::class.java))
         }
     }
 
