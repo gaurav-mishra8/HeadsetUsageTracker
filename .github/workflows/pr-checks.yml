@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+env:
+  ANDROID_SDK_ROOT: ${{ secrets.ANDROID_SDK_ROOT || '/usr/local/lib/android/sdk' }}
+  JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
+
 jobs:
   pr-checks:
     runs-on: ubuntu-latest
@@ -27,6 +31,10 @@ jobs:
       
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
+      with:
+        api-level: 34
+        target: default
+        arch: x86_64
       
     - name: Cache Gradle dependencies
       uses: actions/cache@v4
@@ -39,9 +47,11 @@ jobs:
           ${{ runner.os }}-gradle-
           
     - name: Check for build errors
-      run: ./gradlew assembleDebug --no-daemon --continue || (echo "Build failed" && exit 1)
+      id: build
+      run: ./gradlew assembleDebug --no-daemon --continue
       
     - name: Run unit tests
+      id: test
       run: ./gradlew testDebugUnitTest --no-daemon --continue
       
     - name: Check test coverage
@@ -97,16 +107,25 @@ jobs:
       if: always()
       with:
         script: |
-          const fs = require('fs');
-          let comment = '## Pre-submit Check Results ✅\n\n';
+          let comment = '## Pre-submit Check Results\n\n';
           
-          // Check if build succeeded
-          if ('${{ job.status }}' === 'success') {
+          // Check job outcome
+          const jobStatus = '${{ job.status }}';
+          const buildStep = '${{ steps.build.outcome }}';
+          const testStep = '${{ steps.test.outcome }}';
+          
+          if (jobStatus === 'success') {
             comment += '- ✅ Build successful\n';
             comment += '- ✅ Unit tests passed\n';
             comment += '- ✅ All checks completed\n';
           } else {
             comment += '- ❌ Some checks failed. Please review the logs.\n';
+            if (buildStep === 'failure') {
+              comment += '  - Build failed\n';
+            }
+            if (testStep === 'failure') {
+              comment += '  - Tests failed\n';
+            }
           }
           
           comment += '\n---\n*This check runs automatically on every PR.*';

@@ -25,6 +25,10 @@ jobs:
       
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
+      with:
+        api-level: 34
+        target: default
+        arch: x86_64
       
     - name: Cache Gradle dependencies
       uses: actions/cache@v4
