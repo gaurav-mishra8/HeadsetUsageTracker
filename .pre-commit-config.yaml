@@ -1,0 +1,53 @@
+# Pre-commit hooks configuration
+# Install: pip install pre-commit
+# Run: pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: mixed-line-ending
+      - id: detect-private-key
+      - id: check-executables-have-shebangs
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.33.0
+    hooks:
+      - id: yamllint
+        args: ['-d', '{extends: default, rules: {line-length: {max: 120}}}']
+
+  - repo: local
+    hooks:
+      - id: ktlint
+        name: ktlint
+        entry: ./gradlew ktlintCheck
+        language: system
+        types: [kotlin]
+        pass_filenames: false
+        always_run: true
+
+      - id: android-lint
+        name: Android Lint
+        entry: ./gradlew lintDebug
+        language: system
+        types: [kotlin, java]
+        pass_filenames: false
+        always_run: false
+
+      - id: unit-tests
+        name: Unit Tests
+        entry: ./gradlew testDebugUnitTest
+        language: system
+        types: [kotlin, java]
+        pass_filenames: false
+        always_run: false
+

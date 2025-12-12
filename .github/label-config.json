@@ -1,0 +1,25 @@
+{
+  "labels": [
+    {
+      "label": "bug",
+      "keywords": ["bug", "fix", "error", "issue"]
+    },
+    {
+      "label": "enhancement",
+      "keywords": ["feature", "enhancement", "improvement", "add"]
+    },
+    {
+      "label": "documentation",
+      "keywords": ["docs", "documentation", "readme"]
+    },
+    {
+      "label": "test",
+      "keywords": ["test", "testing", "coverage"]
+    },
+    {
+      "label": "android",
+      "keywords": ["android", "sdk", "api"]
+    }
+  ]
+}
+

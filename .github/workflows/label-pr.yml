@@ -1,0 +1,15 @@
+name: Label PR
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/label-commits@v2
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        configuration-path: .github/label-config.json
+
