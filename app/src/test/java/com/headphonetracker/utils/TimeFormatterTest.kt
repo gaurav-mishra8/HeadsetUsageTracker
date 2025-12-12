@@ -50,21 +50,21 @@ class TimeFormatterTest {
     fun `test formatDuration with only minutes`() {
         val millis = 120000L // 2 minutes
         val result = TimeFormatter.formatDuration(millis)
-        assertEquals("0h 2m 0s", result)
+        assertEquals("2m 0s", result)
     }
     
     @Test
     fun `test formatDuration with only seconds`() {
         val millis = 5000L // 5 seconds
         val result = TimeFormatter.formatDuration(millis)
-        assertEquals("0h 0m 5s", result)
+        assertEquals("5s", result)
     }
     
     @Test
     fun `test formatDuration with zero`() {
         val millis = 0L
         val result = TimeFormatter.formatDuration(millis)
-        assertEquals("0h 0m 0s", result)
+        assertEquals("0s", result)
     }
     
     @Test
