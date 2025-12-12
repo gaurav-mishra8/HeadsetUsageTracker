@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
@@ -93,6 +94,7 @@ class MainActivity : AppCompatActivity() {
         setupExportButton()
         setupDateNavigation()
         setupBottomNavigation()
+        setupPullToRefresh()
         checkPermissions()
         
         // Initial animations
@@ -139,6 +141,7 @@ class MainActivity : AppCompatActivity() {
         
         // Previous day button
         binding.btnPrevDay.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
             val prevDay = selectedDate.clone() as Calendar
             prevDay.add(Calendar.DAY_OF_YEAR, -1)
             
@@ -147,12 +150,14 @@ class MainActivity : AppCompatActivity() {
                 updateDateDisplay()
                 loadDataForSelectedDate()
             } else {
+                HapticUtils.performErrorFeedback(this)
                 Toast.makeText(this, "Can't go back more than 3 months", Toast.LENGTH_SHORT).show()
             }
         }
         
         // Next day button
         binding.btnNextDay.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
             val nextDay = selectedDate.clone() as Calendar
             nextDay.add(Calendar.DAY_OF_YEAR, 1)
             val today = Calendar.getInstance()
@@ -162,12 +167,14 @@ class MainActivity : AppCompatActivity() {
                 updateDateDisplay()
                 loadDataForSelectedDate()
             } else {
+                HapticUtils.performErrorFeedback(this)
                 Toast.makeText(this, "Can't view future dates", Toast.LENGTH_SHORT).show()
             }
         }
         
         // Date picker on tap
         binding.dateSelector.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
             showDatePicker()
         }
     }
@@ -229,6 +236,11 @@ class MainActivity : AppCompatActivity() {
     
     private fun loadDataForSelectedDate() {
         lifecycleScope.launch {
+            // Show loading skeleton
+            binding.loadingSkeleton.visibility = View.VISIBLE
+            binding.rvAppList.visibility = View.GONE
+            binding.emptyState.visibility = View.GONE
+            
             val dateString = dateFormat.format(selectedDate.time)
             
             // Load total for selected date
@@ -243,6 +255,9 @@ class MainActivity : AppCompatActivity() {
                 database.headphoneUsageDao().getUsageByAppForDate(dateString)
             }
             
+            // Hide loading skeleton
+            binding.loadingSkeleton.visibility = View.GONE
+            
             if (appUsage.isNotEmpty()) {
                 binding.emptyState.visibility = View.GONE
                 binding.rvAppList.visibility = View.VISIBLE
@@ -256,11 +271,28 @@ class MainActivity : AppCompatActivity() {
                 binding.legendScrollView.visibility = View.GONE
                 adapter.updateData(emptyList(), 0)
             }
+            
+            // Stop refresh indicator
+            binding.swipeRefresh.isRefreshing = false
+        }
+    }
+    
+    private fun setupPullToRefresh() {
+        binding.swipeRefresh.setColorSchemeColors(
+            ContextCompat.getColor(this, R.color.primary),
+            ContextCompat.getColor(this, R.color.primary_light),
+            ContextCompat.getColor(this, R.color.secondary)
+        )
+        
+        binding.swipeRefresh.setOnRefreshListener {
+            HapticUtils.performSwipeFeedback(binding.swipeRefresh)
+            loadDataForSelectedDate()
         }
     }
     
     private fun setupBottomNavigation() {
         binding.bottomNavigation.setOnItemSelectedListener { item ->
+            HapticUtils.performSelectionFeedback(binding.bottomNavigation)
             when (item.itemId) {
                 R.id.nav_today -> {
                     // Reset to today
@@ -435,6 +467,7 @@ class MainActivity : AppCompatActivity() {
     
     private fun setupButton() {
         binding.btnToggleTracking.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
             // Button press animation
             it.animate()
                 .scaleX(0.95f)
@@ -456,6 +489,7 @@ class MainActivity : AppCompatActivity() {
     
     private fun setupExportButton() {
         binding.btnExport.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
             // Button press animation
             it.animate()
                 .scaleX(0.95f)

@@ -62,11 +62,15 @@ class SettingsActivity : AppCompatActivity() {
     private fun setupHealthSettings() {
         // Daily Limit
         updateDailyLimitDisplay()
-        binding.cardDailyLimit.setOnClickListener { showDailyLimitPicker() }
+        binding.cardDailyLimit.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
+            showDailyLimitPicker()
+        }
 
         // Break Reminders
         binding.switchBreakReminders.isChecked = prefs.getBoolean("break_reminders_enabled", false)
-        binding.switchBreakReminders.setOnCheckedChangeListener { _, isChecked ->
+        binding.switchBreakReminders.setOnCheckedChangeListener { view, isChecked ->
+            HapticUtils.performSelectionFeedback(view)
             prefs.edit().putBoolean("break_reminders_enabled", isChecked).apply()
             binding.cardBreakInterval.alpha = if (isChecked) 1f else 0.5f
             binding.cardBreakInterval.isEnabled = isChecked
@@ -76,7 +80,10 @@ class SettingsActivity : AppCompatActivity() {
         updateBreakIntervalDisplay()
         binding.cardBreakInterval.alpha = if (binding.switchBreakReminders.isChecked) 1f else 0.5f
         binding.cardBreakInterval.isEnabled = binding.switchBreakReminders.isChecked
-        binding.cardBreakInterval.setOnClickListener { showBreakIntervalPicker() }
+        binding.cardBreakInterval.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
+            showBreakIntervalPicker()
+        }
     }
 
     private fun updateDailyLimitDisplay() {
@@ -134,7 +141,8 @@ class SettingsActivity : AppCompatActivity() {
     private fun setupNotificationSettings() {
         // Daily Summary
         binding.switchDailySummary.isChecked = prefs.getBoolean("daily_summary_enabled", false)
-        binding.switchDailySummary.setOnCheckedChangeListener { _, isChecked ->
+        binding.switchDailySummary.setOnCheckedChangeListener { view, isChecked ->
+            HapticUtils.performSelectionFeedback(view)
             prefs.edit().putBoolean("daily_summary_enabled", isChecked).apply()
             if (isChecked) {
                 scheduleDailySummary()
@@ -144,7 +152,8 @@ class SettingsActivity : AppCompatActivity() {
 
         // Milestone Alerts
         binding.switchMilestones.isChecked = prefs.getBoolean("milestones_enabled", true)
-        binding.switchMilestones.setOnCheckedChangeListener { _, isChecked ->
+        binding.switchMilestones.setOnCheckedChangeListener { view, isChecked ->
+            HapticUtils.performSelectionFeedback(view)
             prefs.edit().putBoolean("milestones_enabled", isChecked).apply()
         }
     }
@@ -158,10 +167,16 @@ class SettingsActivity : AppCompatActivity() {
     private fun setupAppearanceSettings() {
         // Theme
         updateThemeDisplay()
-        binding.cardTheme.setOnClickListener { showThemePicker() }
+        binding.cardTheme.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
+            showThemePicker()
+        }
 
         // Accent Color
-        binding.cardAccentColor.setOnClickListener { showColorPicker() }
+        binding.cardAccentColor.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
+            showColorPicker()
+        }
     }
 
     private fun updateThemeDisplay() {
@@ -221,7 +236,8 @@ class SettingsActivity : AppCompatActivity() {
     private fun setupTrackingSettings() {
         // Auto-start
         binding.switchAutoStart.isChecked = prefs.getBoolean("auto_start_enabled", false)
-        binding.switchAutoStart.setOnCheckedChangeListener { _, isChecked ->
+        binding.switchAutoStart.setOnCheckedChangeListener { view, isChecked ->
+            HapticUtils.performSelectionFeedback(view)
             prefs.edit().putBoolean("auto_start_enabled", isChecked).apply()
             if (isChecked) {
                 Toast.makeText(this, "Tracking will start on device boot", Toast.LENGTH_SHORT).show()
@@ -231,6 +247,7 @@ class SettingsActivity : AppCompatActivity() {
         // Excluded Apps
         updateExcludedAppsCount()
         binding.cardExcludedApps.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
             startActivity(Intent(this, ExcludedAppsActivity::class.java))
         }
     }
@@ -252,10 +269,22 @@ class SettingsActivity : AppCompatActivity() {
     // ==================== DATA SETTINGS ====================
 
     private fun setupDataSettings() {
-        binding.cardBackup.setOnClickListener { backupData() }
-        binding.cardRestore.setOnClickListener { restoreFilePicker.launch("application/json") }
-        binding.cardExportData.setOnClickListener { exportAllData() }
-        binding.cardClearData.setOnClickListener { showClearDataConfirmation() }
+        binding.cardBackup.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
+            backupData()
+        }
+        binding.cardRestore.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
+            restoreFilePicker.launch("application/json")
+        }
+        binding.cardExportData.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
+            exportAllData()
+        }
+        binding.cardClearData.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
+            showClearDataConfirmation()
+        }
     }
 
     private fun backupData() {
@@ -420,6 +449,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setupAboutSettings() {
         binding.cardViewOnboarding.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
             startActivity(Intent(this, OnboardingActivity::class.java))
         }
     }
