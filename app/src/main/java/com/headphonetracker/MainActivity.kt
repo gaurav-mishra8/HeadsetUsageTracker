@@ -21,12 +21,15 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+
+import com.headphonetracker.data.HeadphoneUsageDao
 import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.ValueFormatter
-import com.headphonetracker.data.AppDatabase
 import com.headphonetracker.data.AppUsageSummary
 import com.headphonetracker.data.DailyUsageSummary
 import com.headphonetracker.databinding.ActivityMainBinding
@@ -38,10 +41,12 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivityMainBinding
-    private lateinit var database: AppDatabase
+    @Inject
+    lateinit var headphoneUsageDao: HeadphoneUsageDao
     private lateinit var adapter: AppUsageAdapter
     private var isTracking = false
     private var refreshJob: Job? = null
@@ -86,7 +91,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
-        database = AppDatabase.getDatabase(this)
+    // DAO is injected by Hilt
         
         setupRecyclerView()
         setupCharts()
@@ -245,14 +250,14 @@ class MainActivity : AppCompatActivity() {
             
             // Load total for selected date
             val totalDuration = withContext(Dispatchers.IO) {
-                database.headphoneUsageDao().getTotalUsageForDate(dateString) ?: 0L
+                headphoneUsageDao.getTotalUsageForDate(dateString) ?: 0L
             }
             
             animateTotalTime(totalDuration)
             
             // Load app usage for selected date
             val appUsage = withContext(Dispatchers.IO) {
-                database.headphoneUsageDao().getUsageByAppForDate(dateString)
+                headphoneUsageDao.getUsageByAppForDate(dateString)
             }
             
             // Hide loading skeleton
@@ -521,7 +526,7 @@ class MainActivity : AppCompatActivity() {
                 
                 // Get detailed usage data
                 val detailedUsage = withContext(Dispatchers.IO) {
-                    database.headphoneUsageDao().getUsageForDateRange(startDate, endDate)
+                    headphoneUsageDao.getUsageForDateRange(startDate, endDate)
                 }
                 
                 if (cachedWeeklyData.isEmpty() && detailedUsage.isEmpty()) {
@@ -604,7 +609,7 @@ class MainActivity : AppCompatActivity() {
         // Also load weekly bar chart data
         lifecycleScope.launch {
             val last7Days = withContext(Dispatchers.IO) {
-                database.headphoneUsageDao().getLast7DaysUsage()
+                headphoneUsageDao.getLast7DaysUsage()
             }
             cachedWeeklyData = last7Days
             updateBarChart(last7Days)

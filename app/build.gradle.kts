@@ -2,11 +2,36 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
+    id("org.jlleitschuh.gradle.ktlint")
+    id("io.gitlab.arturbosch.detekt")
+    id("com.google.dagger.hilt.android")
+}
+
+detekt {
+    toolVersion = "1.22.0"
+    config = files(rootProject.file("detekt.yml"))
+    baseline = file("detekt-baseline.xml")
+    buildUponDefaultConfig = true
 }
 
 android {
     namespace = "com.headphonetracker"
     compileSdk = 36
+
+    // Read signing properties from project properties or environment variables
+    val keystorePath: String? = (project.findProperty("keystorePath") as String?) ?: System.getenv("KEYSTORE_PATH")
+    val keystorePassword: String? = (project.findProperty("keystorePassword") as String?) ?: System.getenv("KEYSTORE_PASSWORD")
+    val keyAlias: String? = (project.findProperty("keyAlias") as String?) ?: System.getenv("KEY_ALIAS")
+    val keyPassword: String? = (project.findProperty("keyPassword") as String?) ?: System.getenv("KEY_PASSWORD")
+
+    signingConfigs {
+        create("release") {
+            keystorePath?.let { storeFile = file(it) }
+            keystorePassword?.let { storePassword = it }
+            keyAlias?.let { this.keyAlias = it }
+            keyPassword?.let { this.keyPassword = it }
+        }
+    }
 
     defaultConfig {
         applicationId = "com.headphonetracker"
@@ -20,11 +45,14 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Enable code shrinking and obfuscation for release builds
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Use signing config if provided via properties or environment variables
+            signingConfig = signingConfigs.findByName("release")
         }
     }
     compileOptions {
@@ -58,6 +86,10 @@ dependencies {
     
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // Hilt for DI
+    implementation("com.google.dagger:hilt-android:2.46.1")
+    kapt("com.google.dagger:hilt-compiler:2.46.1")
     
     // Testing
     testImplementation("junit:junit:4.13.2")

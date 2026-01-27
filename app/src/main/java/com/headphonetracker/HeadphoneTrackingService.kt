@@ -14,13 +14,16 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
-import com.headphonetracker.data.AppDatabase
+import com.headphonetracker.data.HeadphoneUsageDao
 import com.headphonetracker.data.HeadphoneUsage
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.text.SimpleDateFormat
 import java.util.*
 
+@AndroidEntryPoint
 class HeadphoneTrackingService : LifecycleService() {
     
     private val audioManager by lazy { getSystemService(Context.AUDIO_SERVICE) as AudioManager }
@@ -28,7 +31,8 @@ class HeadphoneTrackingService : LifecycleService() {
     private val powerManager by lazy { getSystemService(Context.POWER_SERVICE) as PowerManager }
     private val notificationManager by lazy { getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager }
     private val pkgManager by lazy { applicationContext.packageManager }
-    private val database by lazy { AppDatabase.getDatabase(applicationContext) }
+    @Inject
+    lateinit var headphoneUsageDao: HeadphoneUsageDao
     private val prefs by lazy { getSharedPreferences("headphone_tracker_prefs", Context.MODE_PRIVATE) }
     
     private var trackingJob: Job? = null
@@ -429,7 +433,8 @@ class HeadphoneTrackingService : LifecycleService() {
                 date = date
             )
             
-            database.headphoneUsageDao().insertUsage(usage)
+            // Insert via injected DAO
+            headphoneUsageDao.insertUsage(usage)
             Log.d(TAG, "SAVED to DB: $appName ($packageName), duration=${duration}ms, date=$date")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to save session for $packageName: ${e.message}")
@@ -474,7 +479,7 @@ class HeadphoneTrackingService : LifecycleService() {
         
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         val todayUsage = withContext(Dispatchers.IO) {
-            database.headphoneUsageDao().getTotalUsageForDate(today) ?: 0L
+            headphoneUsageDao.getTotalUsageForDate(today) ?: 0L
         }
         
         val usageMinutes = todayUsage / 60

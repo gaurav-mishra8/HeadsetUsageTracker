@@ -1,5 +1,20 @@
 version: 2
 updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    allow:
+      - dependency-type: "direct"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+version: 2
+updates:
   # Enable version updates for Gradle
   - package-ecosystem: "gradle"
     directory: "/"
@@ -21,4 +36,5 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+
 

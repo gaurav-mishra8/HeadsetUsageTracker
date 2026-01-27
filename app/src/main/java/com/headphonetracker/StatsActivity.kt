@@ -9,12 +9,15 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+
+import com.headphonetracker.data.HeadphoneUsageDao
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
-import com.headphonetracker.data.AppDatabase
 import com.headphonetracker.databinding.ActivityStatsBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,10 +25,12 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
+@AndroidEntryPoint
 class StatsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityStatsBinding
-    private lateinit var database: AppDatabase
+    @Inject
+    lateinit var headphoneUsageDao: HeadphoneUsageDao
 
     // App categories mapping
     private val musicApps = setOf("com.spotify.music", "com.apple.android.music", "com.amazon.mp3", "com.google.android.apps.youtube.music", "com.soundcloud.android", "deezer.android.app", "com.pandora.android")
@@ -40,7 +45,7 @@ class StatsActivity : AppCompatActivity() {
         binding = ActivityStatsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        database = AppDatabase.getDatabase(this)
+    // DAO is injected by Hilt
 
         binding.toolbar.setNavigationOnClickListener { finish() }
 
@@ -59,7 +64,7 @@ class StatsActivity : AppCompatActivity() {
 
     private suspend fun loadStreaks() {
         val allDates = withContext(Dispatchers.IO) {
-            database.headphoneUsageDao().getAllUsage()
+            headphoneUsageDao.getAllUsage()
                 .map { it.date }
                 .distinct()
                 .sortedDescending()
@@ -134,7 +139,7 @@ class StatsActivity : AppCompatActivity() {
         val lastWeekStart = dateFormat.format(calendar.time)
 
         val allUsage = withContext(Dispatchers.IO) {
-            database.headphoneUsageDao().getAllUsage()
+            headphoneUsageDao.getAllUsage()
         }
 
         val thisWeekTotal = allUsage.filter { it.date in thisWeekStart..thisWeekEnd }.sumOf { it.duration }
@@ -160,7 +165,7 @@ class StatsActivity : AppCompatActivity() {
 
     private suspend fun loadHourlyChart() {
         val allUsage = withContext(Dispatchers.IO) {
-            database.headphoneUsageDao().getAllUsage()
+            headphoneUsageDao.getAllUsage()
         }
 
         // Group by hour
@@ -237,7 +242,7 @@ class StatsActivity : AppCompatActivity() {
 
     private suspend fun loadCategories() {
         val allUsage = withContext(Dispatchers.IO) {
-            database.headphoneUsageDao().getAllUsage()
+            headphoneUsageDao.getAllUsage()
         }
 
         val categoryTotals = mutableMapOf(
@@ -345,7 +350,7 @@ class StatsActivity : AppCompatActivity() {
         val monthEnd = dateFormat.format(calendar.time)
 
         val monthUsage = withContext(Dispatchers.IO) {
-            database.headphoneUsageDao().getAllUsage()
+            headphoneUsageDao.getAllUsage()
                 .filter { it.date in monthStart..monthEnd }
         }
 
@@ -370,4 +375,5 @@ class StatsActivity : AppCompatActivity() {
 
     private fun Int.dpToPx(): Int = (this * resources.displayMetrics.density).toInt()
 }
+
 

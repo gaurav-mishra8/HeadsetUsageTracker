@@ -12,4 +12,3 @@ data class DetailedUsageSummary(
     val appName: String,
     val totalDuration: Long
 )
-

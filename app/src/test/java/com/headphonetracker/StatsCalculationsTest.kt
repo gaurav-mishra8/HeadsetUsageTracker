@@ -241,3 +241,4 @@ class StatsCalculationsTest {
     private data class UsageWithHour(val date: String, val hour: Int, val duration: Long)
 }
 
+

@@ -129,3 +129,31 @@ This project is open source and available for educational purposes.
 - Data is stored locally on your device
 - The service runs in the foreground with a notification
 
+## Release & CI: signing and publishing
+
+This repo includes workflows to build signed releases and publish to Google Play (internal track).
+
+Required GitHub Secrets (Repository -> Settings -> Secrets & variables -> Actions):
+
+- `KEYSTORE_BASE64` — Base64-encoded bytes of your keystore (e.g. `cat release-keystore.jks | base64`).
+- `KEYSTORE_PASSWORD` — Keystore password.
+- `KEY_ALIAS` — Key alias inside the keystore.
+- `KEY_PASSWORD` — Key password for the alias.
+- `PLAY_STORE_SERVICE_ACCOUNT_JSON` — The JSON content of a Google Play service account with the `Service Account User` and `Release Manager` roles.
+
+How to trigger:
+- Push a tag matching `v*` (for example `git tag v1.0.0 && git push origin v1.0.0`) to run the publish workflow automatically.
+- Or trigger the workflow manually in the Actions tab using `workflow_dispatch`.
+
+Notes and alternatives:
+- You can also run signed builds locally by passing Gradle properties:
+```bash
+./gradlew :app:assembleRelease \
+   -PkeystorePath=/path/to/keystore.jks \
+   -PkeystorePassword=... \
+   -PkeyAlias=... \
+   -PkeyPassword=...
+```
+- If you prefer not to store a keystore in Actions, consider using Google Play App Signing and upload an unsigned AAB instead.
+
+

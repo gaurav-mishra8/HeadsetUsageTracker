@@ -12,8 +12,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+
+import com.headphonetracker.data.HeadphoneUsageDao
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.headphonetracker.data.AppDatabase
 import com.headphonetracker.data.HeadphoneUsage
 import com.headphonetracker.databinding.ActivitySettingsBinding
 import kotlinx.coroutines.Dispatchers
@@ -25,10 +28,12 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
+@AndroidEntryPoint
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
-    private lateinit var database: AppDatabase
+    @Inject
+    lateinit var headphoneUsageDao: HeadphoneUsageDao
     private val prefs by lazy { getSharedPreferences("headphone_tracker_prefs", Context.MODE_PRIVATE) }
 
     private val restoreFilePicker = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -40,7 +45,7 @@ class SettingsActivity : AppCompatActivity() {
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        database = AppDatabase.getDatabase(this)
+    // DAO is injected by Hilt
 
         setupToolbar()
         setupHealthSettings()
@@ -291,7 +296,7 @@ class SettingsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val allData = withContext(Dispatchers.IO) {
-                    database.headphoneUsageDao().getAllUsage()
+                    headphoneUsageDao.getAllUsage()
                 }
 
                 if (allData.isEmpty()) {
@@ -360,7 +365,7 @@ class SettingsActivity : AppCompatActivity() {
                             startTime = item.getLong("startTime"),
                             endTime = item.getLong("endTime")
                         )
-                        database.headphoneUsageDao().insertUsage(usage)
+                        headphoneUsageDao.insertUsage(usage)
                         importedCount++
                     }
                 }
@@ -378,7 +383,7 @@ class SettingsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val allData = withContext(Dispatchers.IO) {
-                    database.headphoneUsageDao().getAllUsage()
+                    headphoneUsageDao.getAllUsage()
                 }
 
                 if (allData.isEmpty()) {
@@ -426,9 +431,9 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun clearAllData() {
         lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                database.headphoneUsageDao().deleteAllUsage()
-            }
+                withContext(Dispatchers.IO) {
+                    headphoneUsageDao.deleteAllUsage()
+                }
             Toast.makeText(this@SettingsActivity, "All data cleared", Toast.LENGTH_SHORT).show()
             loadStorageInfo()
         }
@@ -437,7 +442,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun loadStorageInfo() {
         lifecycleScope.launch {
             val allData = withContext(Dispatchers.IO) {
-                database.headphoneUsageDao().getAllUsage()
+                headphoneUsageDao.getAllUsage()
             }
             val recordCount = allData.size
             val totalDuration = allData.sumOf { it.duration }

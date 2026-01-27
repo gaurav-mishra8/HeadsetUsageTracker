@@ -1,0 +1,168 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>ComplexCondition:HeadphoneTrackingService.kt$HeadphoneTrackingService$type == AudioDeviceInfo.TYPE_WIRED_HEADSET || type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES || type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP || type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO || type == AudioDeviceInfo.TYPE_USB_HEADSET || type == AudioDeviceInfo.TYPE_BLE_HEADSET || (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.S &amp;&amp; type == AudioDeviceInfo.TYPE_BLE_BROADCAST)</ID>
+    <ID>CyclomaticComplexMethod:HeadphoneTrackingService.kt$HeadphoneTrackingService$private suspend fun checkHeadphoneUsage()</ID>
+    <ID>CyclomaticComplexMethod:StatsActivity.kt$StatsActivity$private suspend fun loadCategories()</ID>
+    <ID>ImplicitDefaultLocale:ExportUtils.kt$ExportUtils$String.format("%.1f%%", percentage)</ID>
+    <ID>ImplicitDefaultLocale:ExportUtilsTest.kt$ExportUtilsTest$String.format("%.1f%%", percentage)</ID>
+    <ID>ImplicitDefaultLocale:MainActivity.kt$MainActivity$String.format("%.0f%%", percentage)</ID>
+    <ID>ImplicitDefaultLocale:MainActivity.kt$MainActivity.&lt;no name provided&gt;$String.format("%.0fm", value)</ID>
+    <ID>ImplicitDefaultLocale:MainActivity.kt$MainActivity.&lt;no name provided&gt;$String.format("%.1fh", value / 60)</ID>
+    <ID>LongMethod:StatsActivity.kt$StatsActivity$private suspend fun loadCategories()</ID>
+    <ID>MagicNumber:AppUsageAdapter.kt$AppUsageAdapter$100</ID>
+    <ID>MagicNumber:AppUsageAdapter.kt$AppUsageAdapter$1000</ID>
+    <ID>MagicNumber:AppUsageAdapter.kt$AppUsageAdapter$300</ID>
+    <ID>MagicNumber:AppUsageAdapter.kt$AppUsageAdapter$3600</ID>
+    <ID>MagicNumber:AppUsageAdapter.kt$AppUsageAdapter$50</ID>
+    <ID>MagicNumber:AppUsageAdapter.kt$AppUsageAdapter$50f</ID>
+    <ID>MagicNumber:AppUsageAdapter.kt$AppUsageAdapter$60</ID>
+    <ID>MagicNumber:ExportUtils.kt$ExportUtils$100.0</ID>
+    <ID>MagicNumber:ExportUtils.kt$ExportUtils$1000</ID>
+    <ID>MagicNumber:ExportUtils.kt$ExportUtils$3600</ID>
+    <ID>MagicNumber:ExportUtils.kt$ExportUtils$60</ID>
+    <ID>MagicNumber:HapticUtils.kt$HapticUtils$100</ID>
+    <ID>MagicNumber:HapticUtils.kt$HapticUtils$50</ID>
+    <ID>MagicNumber:HeadphoneTrackingService.kt$HeadphoneTrackingService$0.8</ID>
+    <ID>MagicNumber:HeadphoneTrackingService.kt$HeadphoneTrackingService$10</ID>
+    <ID>MagicNumber:HeadphoneTrackingService.kt$HeadphoneTrackingService$1000</ID>
+    <ID>MagicNumber:HeadphoneTrackingService.kt$HeadphoneTrackingService$1000L</ID>
+    <ID>MagicNumber:HeadphoneTrackingService.kt$HeadphoneTrackingService$30</ID>
+    <ID>MagicNumber:HeadphoneTrackingService.kt$HeadphoneTrackingService$5</ID>
+    <ID>MagicNumber:HeadphoneTrackingService.kt$HeadphoneTrackingService$60</ID>
+    <ID>MagicNumber:HeadphoneTrackingService.kt$HeadphoneTrackingService$60000</ID>
+    <ID>MagicNumber:HeadphoneTrackingService.kt$HeadphoneTrackingService$60L</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$0.3f</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$0.4f</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$0.6f</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$0.95f</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$100</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$1000</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$100f</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$10f</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$11f</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$14f</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$1500</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$3</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$300</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$3600</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$3f</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$500</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$5000</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$50f</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$55f</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$6</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$60</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$60.0</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$60f</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$8</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$800</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$8f</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity.&lt;no name provided&gt;$60</ID>
+    <ID>MagicNumber:OnboardingActivity.kt$OnboardingActivity.OnboardingAdapter.ViewHolder$15f</ID>
+    <ID>MagicNumber:SettingsActivity.kt$SettingsActivity$0.5f</ID>
+    <ID>MagicNumber:SettingsActivity.kt$SettingsActivity$120</ID>
+    <ID>MagicNumber:SettingsActivity.kt$SettingsActivity$180</ID>
+    <ID>MagicNumber:SettingsActivity.kt$SettingsActivity$240</ID>
+    <ID>MagicNumber:SettingsActivity.kt$SettingsActivity$30</ID>
+    <ID>MagicNumber:SettingsActivity.kt$SettingsActivity$300</ID>
+    <ID>MagicNumber:SettingsActivity.kt$SettingsActivity$360</ID>
+    <ID>MagicNumber:SettingsActivity.kt$SettingsActivity$3600</ID>
+    <ID>MagicNumber:SettingsActivity.kt$SettingsActivity$45</ID>
+    <ID>MagicNumber:SettingsActivity.kt$SettingsActivity$60</ID>
+    <ID>MagicNumber:SettingsActivity.kt$SettingsActivity$90</ID>
+    <ID>MagicNumber:StatsActivity.kt$StatsActivity$0.8f</ID>
+    <ID>MagicNumber:StatsActivity.kt$StatsActivity$100</ID>
+    <ID>MagicNumber:StatsActivity.kt$StatsActivity$1000</ID>
+    <ID>MagicNumber:StatsActivity.kt$StatsActivity$10f</ID>
+    <ID>MagicNumber:StatsActivity.kt$StatsActivity$11</ID>
+    <ID>MagicNumber:StatsActivity.kt$StatsActivity$12</ID>
+    <ID>MagicNumber:StatsActivity.kt$StatsActivity$12f</ID>
+    <ID>MagicNumber:StatsActivity.kt$StatsActivity$14f</ID>
+    <ID>MagicNumber:StatsActivity.kt$StatsActivity$24</ID>
+    <ID>MagicNumber:StatsActivity.kt$StatsActivity$3600</ID>
+    <ID>MagicNumber:StatsActivity.kt$StatsActivity$365</ID>
+    <ID>MagicNumber:StatsActivity.kt$StatsActivity$6</ID>
+    <ID>MagicNumber:StatsActivity.kt$StatsActivity$60</ID>
+    <ID>MagicNumber:StatsActivity.kt$StatsActivity$60f</ID>
+    <ID>MagicNumber:StatsActivity.kt$StatsActivity.&lt;no name provided&gt;$12</ID>
+    <ID>MagicNumber:UsageWidgetProvider.kt$UsageWidgetProvider.Companion$3600</ID>
+    <ID>MagicNumber:UsageWidgetProvider.kt$UsageWidgetProvider.Companion$60</ID>
+    <ID>MaxLineLength:ExportUtils.kt$ExportUtils$writer.append("$escapedAppName,$packageName,$total,${duration.hours},${duration.minutes},${duration.seconds},${String.format("%.1f%%", percentage)}\n")</ID>
+    <ID>MaxLineLength:ExportUtils.kt$ExportUtils$writer.append("${daily.date},${daily.totalDuration},${duration.hours},${duration.minutes},${duration.seconds}\n")</ID>
+    <ID>MaxLineLength:ExportUtils.kt$ExportUtils$writer.append("${usage.date},$escapedAppName,${usage.packageName},${usage.totalDuration},${duration.hours},${duration.minutes},${duration.seconds}\n")</ID>
+    <ID>MaxLineLength:ExportUtilsTest.kt$ExportUtilsTest$sb.append("$escapedAppName,$packageName,$total,${duration.hours},${duration.minutes},${duration.seconds},${String.format("%.1f%%", percentage)}\n")</ID>
+    <ID>MaxLineLength:ExportUtilsTest.kt$ExportUtilsTest$sb.append("${daily.date},${daily.totalDuration},${duration.hours},${duration.minutes},${duration.seconds}\n")</ID>
+    <ID>MaxLineLength:ExportUtilsTest.kt$ExportUtilsTest$sb.append("${usage.date},$escapedAppName,${usage.packageName},${usage.totalDuration},${duration.hours},${duration.minutes},${duration.seconds}\n")</ID>
+    <ID>MaxLineLength:HeadphoneTrackingService.kt$HeadphoneTrackingService$Log.d(TAG, "Audio check: isMusicActive=$isMusicActive, activePlaybacks=${activePlaybacks.size}, hasActivePlayback=$hasActivePlayback")</ID>
+    <ID>MaxLineLength:HeadphoneTrackingService.kt$HeadphoneTrackingService$Log.d(TAG, "Check: headphone=true, audioApp=$audioPlayingApp, foregroundApp=${if (audioPlayingApp == null) currentPackage else "N/A"}, tracking=$currentPackage")</ID>
+    <ID>MaxLineLength:HeadphoneTrackingService.kt$HeadphoneTrackingService$Log.d(TAG, "Saving incremental session for $currentPackage, duration=${currentTime - currentSessionStart}ms")</ID>
+    <ID>MaxLineLength:MainActivity.kt$MainActivity$else -&gt; selectedDate.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())?.uppercase() ?: ""</ID>
+    <ID>MaxLineLength:OnboardingActivity.kt$OnboardingActivity$content = "Monitor how much time you spend with headphones across all your apps. Stay aware of your listening patterns and maintain healthy habits."</ID>
+    <ID>MaxLineLength:OnboardingActivity.kt$OnboardingActivity$content = "Now you can track your headphone usage, set daily limits, get break reminders, and maintain healthy listening habits.\n\nLet's get started!"</ID>
+    <ID>MaxLineLength:OnboardingActivity.kt$OnboardingActivity$trivia = "A normal conversation is about 60 dB. Most smartphones can reach 100+ dB at maximum volume. Listening at 100 dB for just 15 minutes can cause hearing damage. Always use the 60/60 rule: 60% volume for 60 minutes max!"</ID>
+    <ID>MaxLineLength:OnboardingActivity.kt$OnboardingActivity$trivia = "The first headphones were invented in 1910 by Nathaniel Baldwin in his kitchen! They weighed over 5 pounds and were used by the US Navy."</ID>
+    <ID>MaxLineLength:OnboardingActivity.kt$OnboardingActivity$trivia = "The human ear can detect sounds from 20 Hz to 20,000 Hz. Most headphones can reproduce this full range, but prolonged exposure above 85 dB can cause permanent damage. Your ears need rest to recover!"</ID>
+    <ID>MaxLineLength:OnboardingActivity.kt$OnboardingActivity$trivia = "Wireless headphones became popular in the 2000s, but the first Bluetooth headphones were released in 2004. Today, over 70% of headphone sales are wireless! Noise-cancelling technology was first developed for pilots in the 1950s."</ID>
+    <ID>MaxLineLength:OnboardingActivity.kt$OnboardingActivity.OnboardingAdapter.ViewHolder$private val cardTrivia: com.google.android.material.card.MaterialCardView = itemView.findViewById(R.id.cardTrivia)</ID>
+    <ID>MaxLineLength:SettingsActivity.kt$SettingsActivity$appendLine("${usage.date},\"${usage.appName}\",${usage.packageName},${usage.duration},\"$formattedDuration\"")</ID>
+    <ID>MaxLineLength:SettingsActivity.kt$SettingsActivity$val fileName = "headphone_tracker_backup_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.json"</ID>
+    <ID>MaxLineLength:SettingsActivity.kt$SettingsActivity$val fileName = "headphone_tracker_export_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.csv"</ID>
+    <ID>MaxLineLength:SettingsActivity.kt$SettingsActivity$val options = arrayOf("Every 30 minutes", "Every 45 minutes", "Every 60 minutes", "Every 90 minutes", "Every 120 minutes")</ID>
+    <ID>MaxLineLength:SettingsActivity.kt$SettingsActivity$val options = arrayOf("No limit", "30 minutes", "1 hour", "1.5 hours", "2 hours", "3 hours", "4 hours", "5 hours", "6 hours")</ID>
+    <ID>MaxLineLength:StatsActivity.kt$StatsActivity$private</ID>
+    <ID>MaxLineLength:StatsActivity.kt$StatsActivity$private val callApps = setOf("com.google.android.dialer", "com.whatsapp", "org.telegram.messenger", "com.discord", "us.zoom.videomeetings")</ID>
+    <ID>MaxLineLength:StatsActivity.kt$StatsActivity$private val podcastApps = setOf("com.google.android.apps.podcasts", "com.spotify.music", "com.apple.podcasts", "fm.castbox.audiobook.radio.podcast", "com.bambuna.podcastaddict")</ID>
+    <ID>MaxLineLength:StatsActivity.kt$StatsActivity$private val socialApps = setOf("com.instagram.android", "com.zhiliaoapp.musically", "com.snapchat.android", "com.facebook.katana")</ID>
+    <ID>MaxLineLength:StatsActivity.kt$StatsActivity$private val videoApps = setOf("com.google.android.youtube", "com.netflix.mediaclient", "com.amazon.avod.thirdpartyclient", "com.disney.disneyplus", "com.hbo.hbonow")</ID>
+    <ID>MaxLineLength:StatsActivity.kt$StatsActivity$progressTintList = ContextCompat.getColorStateList(this@StatsActivity, colors[category] ?: R.color.primary)</ID>
+    <ID>MaxLineLength:StatsCalculationsTest.kt$StatsCalculationsTest$val videoApps = setOf("com.google.android.youtube", "com.netflix.mediaclient", "com.amazon.avod.thirdpartyclient")</ID>
+    <ID>NestedBlockDepth:BootReceiver.kt$BootReceiver$override fun onReceive(context: Context, intent: Intent)</ID>
+    <ID>NestedBlockDepth:HeadphoneTrackingService.kt$HeadphoneTrackingService$@Suppress("DEPRECATION") private fun getAudioPlayingApp(): String?</ID>
+    <ID>NestedBlockDepth:HeadphoneTrackingService.kt$HeadphoneTrackingService$private fun getCurrentForegroundApp(): String?</ID>
+    <ID>NestedBlockDepth:HeadphoneTrackingService.kt$HeadphoneTrackingService$private suspend fun checkHeadphoneUsage()</ID>
+    <ID>NewLineAtEndOfFile:AppUsageSummary.kt$com.headphonetracker.data.AppUsageSummary.kt</ID>
+    <ID>ReturnCount:HeadphoneTrackingService.kt$HeadphoneTrackingService$@Suppress("DEPRECATION") private fun getAudioPlayingApp(): String?</ID>
+    <ID>ReturnCount:HeadphoneTrackingService.kt$HeadphoneTrackingService$private fun getCurrentForegroundApp(): String?</ID>
+    <ID>ReturnCount:HeadphoneTrackingService.kt$HeadphoneTrackingService$private fun isHeadphoneConnected(): Boolean</ID>
+    <ID>SwallowedException:AppUsageAdapter.kt$AppUsageAdapter$e: Exception</ID>
+    <ID>SwallowedException:ExcludedAppsActivity.kt$ExcludedAppsActivity.ExcludedAppsAdapter.ViewHolder$e: Exception</ID>
+    <ID>SwallowedException:HeadphoneTrackingService.kt$HeadphoneTrackingService$e: Exception</ID>
+    <ID>SwallowedException:MainActivity.kt$MainActivity$e: Exception</ID>
+    <ID>SwallowedException:SettingsActivity.kt$SettingsActivity$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AppUsageAdapter.kt$AppUsageAdapter$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:BootReceiver.kt$BootReceiver$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ExcludedAppsActivity.kt$ExcludedAppsActivity.ExcludedAppsAdapter.ViewHolder$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ExportUtils.kt$ExportUtils$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:HeadphoneTrackingService.kt$HeadphoneTrackingService$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:MainActivity.kt$MainActivity$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SettingsActivity.kt$SettingsActivity$e: Exception</ID>
+    <ID>TooGenericExceptionThrown:SettingsActivity.kt$SettingsActivity$throw Exception("Could not read file")</ID>
+    <ID>TooManyFunctions:HeadphoneTrackingService.kt$HeadphoneTrackingService : LifecycleService</ID>
+    <ID>TooManyFunctions:MainActivity.kt$MainActivity : AppCompatActivity</ID>
+    <ID>TooManyFunctions:SettingsActivity.kt$SettingsActivity : AppCompatActivity</ID>
+    <ID>UnusedPrivateMember:HeadphoneTrackingService.kt$HeadphoneTrackingService$private fun isAudioPlaying(): Boolean</ID>
+    <ID>UnusedPrivateMember:StatsActivity.kt$StatsActivity$val today = dateFormat.format(Date())</ID>
+    <ID>WildcardImport:AppUsageAdapterTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:AppUsageSummaryTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:BackupRestoreTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:ChartDataTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:DailyUsageSummaryTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:DataAggregationTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:DateNavigationTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:DateUtilsTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:ExportUtilsTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:HeadphoneTrackingService.kt$import android.app.*</ID>
+    <ID>WildcardImport:HeadphoneTrackingService.kt$import kotlinx.coroutines.*</ID>
+    <ID>WildcardImport:HeadphoneTrackingServiceTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:HeadphoneUsageDao.kt$import androidx.room.*</ID>
+    <ID>WildcardImport:HeadphoneUsageTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:MainActivity.kt$import com.github.mikephil.charting.data.*</ID>
+    <ID>WildcardImport:PermissionUtilsTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:SettingsPreferencesTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:StatsCalculationsTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:TimeFormatterTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:ValidationTest.kt$import org.junit.Assert.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

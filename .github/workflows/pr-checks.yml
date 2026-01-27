@@ -48,11 +48,23 @@ jobs:
           
     - name: Check for build errors
       id: build
-      run: ./gradlew assembleDebug --no-daemon --continue
+      run: ./gradlew assembleDebug --no-daemon
       
     - name: Run unit tests
       id: test
-      run: ./gradlew testDebugUnitTest --no-daemon --continue
+      run: ./gradlew testDebugUnitTest --no-daemon
+
+    - name: Run ktlint
+      id: ktlint
+      run: |
+        echo "Running ktlintCheck..."
+        ./gradlew ktlintCheck --no-daemon
+
+    - name: Run detekt
+      id: detekt
+      run: |
+        echo "Running detekt..."
+        ./gradlew detekt --no-daemon
       
     - name: Check test coverage
       run: |
@@ -117,6 +129,7 @@ jobs:
           if (jobStatus === 'success') {
             comment += '- ✅ Build successful\n';
             comment += '- ✅ Unit tests passed\n';
+            comment += '- ✅ ktlint passed\n';
             comment += '- ✅ All checks completed\n';
           } else {
             comment += '- ❌ Some checks failed. Please review the logs.\n';
@@ -125,6 +138,12 @@ jobs:
             }
             if (testStep === 'failure') {
               comment += '  - Tests failed\n';
+            }
+            if ('${{ steps.ktlint.outcome }}' === 'failure') {
+              comment += '  - ktlint failed\n';
+            }
+            if ('${{ steps.detekt.outcome }}' === 'failure') {
+              comment += '  - detekt failed\n';
             }
           }
           

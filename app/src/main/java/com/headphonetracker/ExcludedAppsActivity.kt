@@ -15,16 +15,21 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.headphonetracker.data.AppDatabase
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+
+import com.headphonetracker.data.HeadphoneUsageDao
 import com.headphonetracker.databinding.ActivityExcludedAppsBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@AndroidEntryPoint
 class ExcludedAppsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityExcludedAppsBinding
-    private lateinit var database: AppDatabase
+    @Inject
+    lateinit var headphoneUsageDao: HeadphoneUsageDao
     private val prefs by lazy { getSharedPreferences("headphone_tracker_prefs", Context.MODE_PRIVATE) }
     private lateinit var adapter: ExcludedAppsAdapter
 
@@ -33,7 +38,7 @@ class ExcludedAppsActivity : AppCompatActivity() {
         binding = ActivityExcludedAppsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        database = AppDatabase.getDatabase(this)
+    // DAO is injected by Hilt
 
         binding.toolbar.setNavigationOnClickListener {
             HapticUtils.performClickFeedback(it)
@@ -145,7 +150,7 @@ class ExcludedAppsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val apps = withContext(Dispatchers.IO) {
                 // Get unique apps from usage history
-                database.headphoneUsageDao().getAllUsage()
+                headphoneUsageDao.getAllUsage()
                     .map { AppInfo(it.packageName, it.appName) }
                     .distinctBy { it.packageName }
                     .sortedBy { it.appName.lowercase() }
