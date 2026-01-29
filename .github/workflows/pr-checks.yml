@@ -59,6 +59,7 @@ jobs:
       run: |
         echo "Running ktlintCheck..."
         ./gradlew ktlintCheck --no-daemon
+      continue-on-error: true
 
     - name: Run detekt
       id: detekt

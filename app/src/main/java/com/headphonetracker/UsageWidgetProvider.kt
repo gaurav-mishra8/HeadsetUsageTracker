@@ -30,7 +30,7 @@ class UsageWidgetProvider : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
-        
+
         if (intent.action == ACTION_UPDATE_WIDGET) {
             val appWidgetManager = AppWidgetManager.getInstance(context)
             val appWidgetIds = appWidgetManager.getAppWidgetIds(
@@ -49,7 +49,11 @@ class UsageWidgetProvider : AppWidgetProvider() {
             appWidgetId: Int
         ) {
             CoroutineScope(Dispatchers.Main).launch {
-                val entryPoint = EntryPointAccessors.fromApplication(context.applicationContext, AppEntryPoints::class.java)
+                val appCtx = context.applicationContext
+                val entryPoint = EntryPointAccessors.fromApplication(
+                    appCtx,
+                    AppEntryPoints::class.java
+                )
                 val dao = entryPoint.getHeadphoneUsageDao()
                 val settingsRepository = entryPoint.getSettingsRepository()
                 val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -63,11 +67,13 @@ class UsageWidgetProvider : AppWidgetProvider() {
                 val views = RemoteViews(context.packageName, R.layout.widget_usage).apply {
                     setTextViewText(R.id.tvWidgetTime, formatDuration(totalDuration))
                     setTextViewText(R.id.tvWidgetStatus, if (isTracking) "● Tracking" else "● Inactive")
-                    
+
                     // Set click to open app
                     val intent = Intent(context, MainActivity::class.java)
                     val pendingIntent = PendingIntent.getActivity(
-                        context, 0, intent,
+                        context,
+                        0,
+                        intent,
                         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                     )
                     setOnClickPendingIntent(R.id.tvWidgetTime, pendingIntent)
@@ -96,5 +102,3 @@ class UsageWidgetProvider : AppWidgetProvider() {
         }
     }
 }
-
-

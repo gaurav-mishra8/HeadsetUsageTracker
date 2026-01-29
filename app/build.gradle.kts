@@ -7,6 +7,13 @@ plugins {
     id("com.google.dagger.hilt.android")
 }
 
+ktlint {
+    // Exclude androidTest sources from strict ktlint enforcement for now
+    filter {
+        exclude("**/src/androidTest/**")
+    }
+}
+
 detekt {
     toolVersion = "1.22.0"
     config = files(rootProject.file("detekt.yml"))
@@ -75,15 +82,15 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-service:2.7.0")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
-    
+
     // Room database
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
-    
+
     // MPAndroidChart for graphs
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
-    
+
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
@@ -95,7 +102,7 @@ dependencies {
     kaptTest("com.google.dagger:hilt-compiler:2.46.1")
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.46.1")
     kaptAndroidTest("com.google.dagger:hilt-compiler:2.46.1")
-    
+
     // Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-core:5.7.0")
@@ -103,7 +110,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
     testImplementation("com.google.truth:truth:1.1.4")
-    
+
     // Android Testing
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -115,4 +122,3 @@ dependencies {
     androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
 }
-

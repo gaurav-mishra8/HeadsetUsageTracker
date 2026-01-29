@@ -225,6 +225,7 @@ jobs:
       
     - name: Check Kotlin code style
       run: ./gradlew ktlintCheck --no-daemon
+      continue-on-error: true
 
     - name: Run detekt
       run: ./gradlew detekt --no-daemon

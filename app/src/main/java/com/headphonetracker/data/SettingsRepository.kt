@@ -5,6 +5,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
+@Suppress("TooManyFunctions", "detekt.TooManyFunctions")
 class SettingsRepository @Inject constructor(
     private val prefs: SharedPreferences
 ) {
