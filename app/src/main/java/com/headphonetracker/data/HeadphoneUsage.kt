@@ -2,7 +2,6 @@ package com.headphonetracker.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.util.Date
 
 @Entity(tableName = "headphone_usage")
 data class HeadphoneUsage(
@@ -15,4 +14,3 @@ data class HeadphoneUsage(
     val duration: Long, // in milliseconds
     val date: String // YYYY-MM-DD format
 )
-

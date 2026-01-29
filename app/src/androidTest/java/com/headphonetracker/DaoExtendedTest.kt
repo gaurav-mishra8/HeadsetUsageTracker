@@ -8,19 +8,19 @@ import com.headphonetracker.data.HeadphoneUsage
 import com.headphonetracker.data.HeadphoneUsageDao
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.junit.Assert.*
-import java.text.SimpleDateFormat
-import java.util.*
 
 @RunWith(AndroidJUnit4::class)
 class DaoExtendedTest {
-    
+
     private lateinit var database: AppDatabase
     private lateinit var dao: HeadphoneUsageDao
-    
+
     @Before
     fun setUp() {
         database = Room.inMemoryDatabaseBuilder(
@@ -29,12 +29,12 @@ class DaoExtendedTest {
         ).allowMainThreadQueries().build()
         dao = database.headphoneUsageDao()
     }
-    
+
     @After
     fun tearDown() {
         database.close()
     }
-    
+
     @Test
     fun testGetAllUsage() = runBlocking {
         val usage1 = HeadphoneUsage(
@@ -53,24 +53,24 @@ class DaoExtendedTest {
             startTime = 2000L,
             endTime = 7202000L
         )
-        
+
         dao.insertUsage(usage1)
         dao.insertUsage(usage2)
-        
+
         val allUsage = dao.getAllUsage()
-        
+
         assertEquals(2, allUsage.size)
         assertTrue(allUsage.any { it.packageName == "com.app1" })
         assertTrue(allUsage.any { it.packageName == "com.app2" })
     }
-    
+
     @Test
     fun testGetAllUsageReturnsEmptyList() = runBlocking {
         val allUsage = dao.getAllUsage()
-        
+
         assertEquals(0, allUsage.size)
     }
-    
+
     @Test
     fun testDeleteAllUsage() = runBlocking {
         val usage1 = HeadphoneUsage(
@@ -89,17 +89,17 @@ class DaoExtendedTest {
             startTime = 2000L,
             endTime = 7202000L
         )
-        
+
         dao.insertUsage(usage1)
         dao.insertUsage(usage2)
-        
+
         assertEquals(2, dao.getAllUsage().size)
-        
+
         dao.deleteAllUsage()
-        
+
         assertEquals(0, dao.getAllUsage().size)
     }
-    
+
     @Test
     fun testGetAllUsageBetweenDates() = runBlocking {
         val usage1 = HeadphoneUsage(
@@ -126,19 +126,19 @@ class DaoExtendedTest {
             startTime = 3000L,
             endTime = 1803000L
         )
-        
+
         dao.insertUsage(usage1)
         dao.insertUsage(usage2)
         dao.insertUsage(usage3)
-        
+
         val rangeUsage = dao.getUsageForDateRange("2024-01-01", "2024-01-07")
-        
+
         assertEquals(2, rangeUsage.size)
         assertTrue(rangeUsage.any { it.date == "2024-01-01" })
         assertTrue(rangeUsage.any { it.date == "2024-01-05" })
         assertFalse(rangeUsage.any { it.date == "2024-01-10" })
     }
-    
+
     @Test
     fun testGetUsageForDateRangeWithNoMatches() = runBlocking {
         val usage = HeadphoneUsage(
@@ -149,13 +149,11 @@ class DaoExtendedTest {
             startTime = 1000L,
             endTime = 3601000L
         )
-        
+
         dao.insertUsage(usage)
-        
+
         val rangeUsage = dao.getUsageForDateRange("2024-01-10", "2024-01-15")
-        
+
         assertEquals(0, rangeUsage.size)
     }
 }
-
-

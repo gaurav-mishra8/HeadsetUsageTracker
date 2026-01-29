@@ -6,8 +6,8 @@ import com.headphonetracker.data.HeadphoneUsageDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 @Module
@@ -23,5 +23,4 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideHeadphoneUsageDao(db: AppDatabase): HeadphoneUsageDao = db.headphoneUsageDao()
-
 }

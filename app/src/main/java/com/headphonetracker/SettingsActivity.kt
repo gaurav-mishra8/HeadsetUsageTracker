@@ -1,24 +1,19 @@
 package com.headphonetracker
 
-import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
-
-import com.headphonetracker.data.HeadphoneUsageDao
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.headphonetracker.data.HeadphoneUsage
+import com.headphonetracker.data.HeadphoneUsageDao
 import com.headphonetracker.databinding.ActivitySettingsBinding
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -26,14 +21,18 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
+
     @Inject
     lateinit var headphoneUsageDao: HeadphoneUsageDao
+
     @Inject
     lateinit var settingsRepository: com.headphonetracker.data.SettingsRepository
 
@@ -46,7 +45,7 @@ class SettingsActivity : AppCompatActivity() {
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-    // DAO is injected by Hilt
+        // DAO is injected by Hilt
 
         setupToolbar()
         setupHealthSettings()
@@ -64,7 +63,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     // ==================== HEALTH SETTINGS ====================
-    
+
     private fun setupHealthSettings() {
         // Daily Limit
         updateDailyLimitDisplay()
@@ -74,14 +73,14 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         // Break Reminders
-            binding.switchBreakReminders.isChecked = settingsRepository.isBreakRemindersEnabled()
-            binding.switchBreakReminders.setOnCheckedChangeListener { view, isChecked ->
-                HapticUtils.performSelectionFeedback(view)
-                settingsRepository.setBreakRemindersEnabled(isChecked)
-                binding.cardBreakInterval.alpha = if (isChecked) 1f else 0.5f
-                binding.cardBreakInterval.isEnabled = isChecked
+        binding.switchBreakReminders.isChecked = settingsRepository.isBreakRemindersEnabled()
+        binding.switchBreakReminders.setOnCheckedChangeListener { view, isChecked ->
+            HapticUtils.performSelectionFeedback(view)
+            settingsRepository.setBreakRemindersEnabled(isChecked)
+            binding.cardBreakInterval.alpha = if (isChecked) 1f else 0.5f
+            binding.cardBreakInterval.isEnabled = isChecked
         }
-        
+
         // Break Interval
         updateBreakIntervalDisplay()
         binding.cardBreakInterval.alpha = if (binding.switchBreakReminders.isChecked) 1f else 0.5f
@@ -112,7 +111,7 @@ class SettingsActivity : AppCompatActivity() {
         MaterialAlertDialogBuilder(this, R.style.AlertDialogTheme)
             .setTitle("Daily listening limit")
             .setSingleChoiceItems(options, currentIndex) { dialog, which ->
-            settingsRepository.setDailyLimitMinutes(values[which])
+                settingsRepository.setDailyLimitMinutes(values[which])
                 updateDailyLimitDisplay()
                 dialog.dismiss()
             }
@@ -134,7 +133,7 @@ class SettingsActivity : AppCompatActivity() {
         MaterialAlertDialogBuilder(this, R.style.AlertDialogTheme)
             .setTitle("Break interval")
             .setSingleChoiceItems(options, currentIndex) { dialog, which ->
-            settingsRepository.setBreakIntervalMinutes(values[which])
+                settingsRepository.setBreakIntervalMinutes(values[which])
                 updateBreakIntervalDisplay()
                 dialog.dismiss()
             }
@@ -146,10 +145,10 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setupNotificationSettings() {
         // Daily Summary
-            binding.switchDailySummary.isChecked = settingsRepository.isDailySummaryEnabled()
+        binding.switchDailySummary.isChecked = settingsRepository.isDailySummaryEnabled()
         binding.switchDailySummary.setOnCheckedChangeListener { view, isChecked ->
             HapticUtils.performSelectionFeedback(view)
-                settingsRepository.setDailySummaryEnabled(isChecked)
+            settingsRepository.setDailySummaryEnabled(isChecked)
             if (isChecked) {
                 scheduleDailySummary()
                 Toast.makeText(this, "Daily summary enabled at 9 PM", Toast.LENGTH_SHORT).show()
@@ -157,10 +156,10 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         // Milestone Alerts
-            binding.switchMilestones.isChecked = settingsRepository.isMilestonesEnabled()
+        binding.switchMilestones.isChecked = settingsRepository.isMilestonesEnabled()
         binding.switchMilestones.setOnCheckedChangeListener { view, isChecked ->
             HapticUtils.performSelectionFeedback(view)
-                settingsRepository.setMilestonesEnabled(isChecked)
+            settingsRepository.setMilestonesEnabled(isChecked)
         }
     }
 
@@ -203,7 +202,7 @@ class SettingsActivity : AppCompatActivity() {
         MaterialAlertDialogBuilder(this, R.style.AlertDialogTheme)
             .setTitle("Choose theme")
             .setSingleChoiceItems(options, currentIndex) { dialog, which ->
-            settingsRepository.setAppTheme(values[which])
+                settingsRepository.setAppTheme(values[which])
                 updateThemeDisplay()
                 applyTheme(values[which])
                 dialog.dismiss()
@@ -229,7 +228,7 @@ class SettingsActivity : AppCompatActivity() {
         MaterialAlertDialogBuilder(this, R.style.AlertDialogTheme)
             .setTitle("Accent color")
             .setSingleChoiceItems(colors, currentIndex) { dialog, which ->
-            settingsRepository.setAccentColor(colorValues[which])
+                settingsRepository.setAccentColor(colorValues[which])
                 Toast.makeText(this, "Restart app to apply color", Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
             }
@@ -241,10 +240,10 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setupTrackingSettings() {
         // Auto-start
-            binding.switchAutoStart.isChecked = settingsRepository.isAutoStartEnabled()
+        binding.switchAutoStart.isChecked = settingsRepository.isAutoStartEnabled()
         binding.switchAutoStart.setOnCheckedChangeListener { view, isChecked ->
             HapticUtils.performSelectionFeedback(view)
-                settingsRepository.setAutoStartEnabled(isChecked)
+            settingsRepository.setAutoStartEnabled(isChecked)
             if (isChecked) {
                 Toast.makeText(this, "Tracking will start on device boot", Toast.LENGTH_SHORT).show()
             }
@@ -308,26 +307,31 @@ class SettingsActivity : AppCompatActivity() {
                 val json = JSONObject().apply {
                     put("version", 1)
                     put("exported_at", System.currentTimeMillis())
-                    put("data", JSONArray().apply {
-                        allData.forEach { usage ->
-                            put(JSONObject().apply {
-                                put("id", usage.id)
-                                put("date", usage.date)
-                                put("packageName", usage.packageName)
-                                put("appName", usage.appName)
-                                put("duration", usage.duration)
-                                put("startTime", usage.startTime)
-                                put("endTime", usage.endTime)
-                            })
+                    put(
+                        "data",
+                        JSONArray().apply {
+                            allData.forEach { usage ->
+                                put(
+                                    JSONObject().apply {
+                                        put("id", usage.id)
+                                        put("date", usage.date)
+                                        put("packageName", usage.packageName)
+                                        put("appName", usage.appName)
+                                        put("duration", usage.duration)
+                                        put("startTime", usage.startTime)
+                                        put("endTime", usage.endTime)
+                                    }
+                                )
+                            }
                         }
-                    })
+                    )
                 }
 
                 val fileName = "headphone_tracker_backup_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.json"
                 val file = File(getExternalFilesDir(null), fileName)
                 file.writeText(json.toString(2))
 
-                val uri = FileProvider.getUriForFile(this@SettingsActivity, "${packageName}.fileprovider", file)
+                val uri = FileProvider.getUriForFile(this@SettingsActivity, "$packageName.fileprovider", file)
 
                 val shareIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "application/json"
@@ -337,7 +341,6 @@ class SettingsActivity : AppCompatActivity() {
                 }
 
                 startActivity(Intent.createChooser(shareIntent, "Save backup"))
-
             } catch (e: Exception) {
                 Toast.makeText(this@SettingsActivity, "Backup failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
@@ -352,7 +355,7 @@ class SettingsActivity : AppCompatActivity() {
 
                 val json = JSONObject(jsonString)
                 val dataArray = json.getJSONArray("data")
-                
+
                 var importedCount = 0
                 withContext(Dispatchers.IO) {
                     for (i in 0 until dataArray.length()) {
@@ -373,7 +376,6 @@ class SettingsActivity : AppCompatActivity() {
 
                 Toast.makeText(this@SettingsActivity, "Restored $importedCount records", Toast.LENGTH_SHORT).show()
                 loadStorageInfo()
-
             } catch (e: Exception) {
                 Toast.makeText(this@SettingsActivity, "Restore failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
@@ -404,7 +406,7 @@ class SettingsActivity : AppCompatActivity() {
                 val file = File(getExternalFilesDir(null), fileName)
                 file.writeText(csv)
 
-                val uri = FileProvider.getUriForFile(this@SettingsActivity, "${packageName}.fileprovider", file)
+                val uri = FileProvider.getUriForFile(this@SettingsActivity, "$packageName.fileprovider", file)
 
                 val shareIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/csv"
@@ -414,7 +416,6 @@ class SettingsActivity : AppCompatActivity() {
                 }
 
                 startActivity(Intent.createChooser(shareIntent, "Export data"))
-
             } catch (e: Exception) {
                 Toast.makeText(this@SettingsActivity, "Export failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
@@ -432,9 +433,9 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun clearAllData() {
         lifecycleScope.launch {
-                withContext(Dispatchers.IO) {
-                    headphoneUsageDao.deleteAllUsage()
-                }
+            withContext(Dispatchers.IO) {
+                headphoneUsageDao.deleteAllUsage()
+            }
             Toast.makeText(this@SettingsActivity, "All data cleared", Toast.LENGTH_SHORT).show()
             loadStorageInfo()
         }

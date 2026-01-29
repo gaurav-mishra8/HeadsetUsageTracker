@@ -1,10 +1,10 @@
 package com.headphonetracker.data
 
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class HeadphoneUsageTest {
-    
+
     @Test
     fun `test HeadphoneUsage data class creation`() {
         val usage = HeadphoneUsage(
@@ -16,7 +16,7 @@ class HeadphoneUsageTest {
             duration = 4000L,
             date = "2024-01-01"
         )
-        
+
         assertEquals(1L, usage.id)
         assertEquals("com.example.app", usage.packageName)
         assertEquals("Example App", usage.appName)
@@ -25,7 +25,7 @@ class HeadphoneUsageTest {
         assertEquals(4000L, usage.duration)
         assertEquals("2024-01-01", usage.date)
     }
-    
+
     @Test
     fun `test HeadphoneUsage with default id`() {
         val usage = HeadphoneUsage(
@@ -36,16 +36,16 @@ class HeadphoneUsageTest {
             duration = 4000L,
             date = "2024-01-01"
         )
-        
+
         assertEquals(0L, usage.id)
     }
-    
+
     @Test
     fun `test HeadphoneUsage duration calculation`() {
         val startTime = 1000L
         val endTime = 5000L
         val expectedDuration = 4000L
-        
+
         val usage = HeadphoneUsage(
             packageName = "com.example.app",
             appName = "Example App",
@@ -54,9 +54,8 @@ class HeadphoneUsageTest {
             duration = expectedDuration,
             date = "2024-01-01"
         )
-        
+
         assertEquals(expectedDuration, usage.duration)
         assertEquals(endTime - startTime, usage.duration)
     }
 }
-

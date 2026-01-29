@@ -1,6 +1,5 @@
 package com.headphonetracker
 
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,16 +8,14 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
-
-import com.headphonetracker.data.SettingsRepository
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.headphonetracker.data.SettingsRepository
 import com.headphonetracker.databinding.ActivityOnboardingBinding
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 data class OnboardingPage(
     val iconRes: Int,
@@ -43,7 +40,8 @@ class OnboardingActivity : AppCompatActivity() {
             iconRes = R.drawable.ic_headphones,
             title = "Welcome to Headphone Tracker",
             subtitle = "Track your listening habits",
-            content = "Monitor how much time you spend with headphones across all your apps. Stay aware of your listening patterns and maintain healthy habits."
+            content = "Monitor how much time you spend with headphones across all your apps. " +
+                "Stay aware of your listening patterns and maintain healthy habits."
         ),
         OnboardingPage(
             iconRes = R.drawable.ic_warning,
@@ -78,34 +76,42 @@ class OnboardingActivity : AppCompatActivity() {
             title = "Fun Facts About Headphones",
             subtitle = "Did you know?",
             content = "",
-            trivia = "The first headphones were invented in 1910 by Nathaniel Baldwin in his kitchen! They weighed over 5 pounds and were used by the US Navy."
+            trivia = "The first headphones were invented in 1910 by Nathaniel Baldwin in his kitchen! " +
+                "They weighed over 5 pounds and were used by the US Navy."
         ),
         OnboardingPage(
             iconRes = R.drawable.ic_headphones,
             title = "Hearing Science",
             subtitle = "Did you know?",
             content = "",
-            trivia = "The human ear can detect sounds from 20 Hz to 20,000 Hz. Most headphones can reproduce this full range, but prolonged exposure above 85 dB can cause permanent damage. Your ears need rest to recover!"
+            trivia = "The human ear can detect sounds from 20 Hz to 20,000 Hz. Most headphones can reproduce " +
+                "this full range, but prolonged exposure above 85 dB can cause permanent damage. " +
+                "Your ears need rest to recover!"
         ),
         OnboardingPage(
             iconRes = R.drawable.ic_headphones,
             title = "Headphone Evolution",
             subtitle = "Fun history",
             content = "",
-            trivia = "Wireless headphones became popular in the 2000s, but the first Bluetooth headphones were released in 2004. Today, over 70% of headphone sales are wireless! Noise-cancelling technology was first developed for pilots in the 1950s."
+            trivia = "Wireless headphones became popular in the 2000s, but the first Bluetooth headphones " +
+                "were released in 2004. Today, over 70% of headphone sales are wireless! " +
+                "Noise-cancelling technology was first developed for pilots in the 1950s."
         ),
         OnboardingPage(
             iconRes = R.drawable.ic_headphones,
             title = "Volume Facts",
             subtitle = "Stay safe",
             content = "",
-            trivia = "A normal conversation is about 60 dB. Most smartphones can reach 100+ dB at maximum volume. Listening at 100 dB for just 15 minutes can cause hearing damage. Always use the 60/60 rule: 60% volume for 60 minutes max!"
+            trivia = "A normal conversation is about 60 dB. Most smartphones can reach 100+ dB at maximum " +
+                "volume. Listening at 100 dB for just 15 minutes can cause hearing damage. " +
+                "Always use the 60/60 rule: 60% volume for 60 minutes max!"
         ),
         OnboardingPage(
             iconRes = R.drawable.ic_headphones,
             title = "You're All Set!",
             subtitle = "Start tracking your usage",
-            content = "Now you can track your headphone usage, set daily limits, get break reminders, and maintain healthy listening habits.\n\nLet's get started!",
+            content = "Now you can track your headphone usage, set daily limits, get break reminders, " +
+                "and maintain healthy listening habits.\n\nLet's get started!",
             bulletPoints = listOf(
                 "Set your daily listening limit",
                 "Enable break reminders",
@@ -217,14 +223,14 @@ class OnboardingActivity : AppCompatActivity() {
             fun bind(page: OnboardingPage) {
                 // Set icon with tint
                 ivIcon.setImageResource(page.iconRes)
-                
+
                 // Apply different colors based on page type
                 val iconColor = when {
                     page.trivia != null -> ContextCompat.getColor(itemView.context, R.color.accent_teal)
                     page.bulletPoints != null -> ContextCompat.getColor(itemView.context, R.color.warning)
                     else -> ContextCompat.getColor(itemView.context, R.color.primary)
                 }
-                
+
                 ivIcon.setColorFilter(iconColor, android.graphics.PorterDuff.Mode.SRC_IN)
 
                 // Set text
@@ -236,7 +242,7 @@ class OnboardingActivity : AppCompatActivity() {
                 if (page.bulletPoints != null && page.bulletPoints.isNotEmpty()) {
                     bulletContainer.visibility = View.VISIBLE
                     bulletContainer.removeAllViews()
-                    
+
                     page.bulletPoints.forEach { point ->
                         val bulletView = createBulletPoint(itemView.context, point)
                         bulletContainer.addView(bulletView)
@@ -294,4 +300,3 @@ class OnboardingActivity : AppCompatActivity() {
         }
     }
 }
-

@@ -9,7 +9,7 @@ import android.view.HapticFeedbackConstants
 import android.view.View
 
 object HapticUtils {
-    
+
     /**
      * Perform haptic feedback for button clicks
      */
@@ -20,14 +20,14 @@ object HapticUtils {
             view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
         }
     }
-    
+
     /**
      * Perform haptic feedback for long press
      */
     fun performLongPressFeedback(view: View) {
         view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
     }
-    
+
     /**
      * Perform haptic feedback for selection
      */
@@ -38,7 +38,7 @@ object HapticUtils {
             view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
         }
     }
-    
+
     /**
      * Perform haptic feedback for success actions
      */
@@ -60,7 +60,7 @@ object HapticUtils {
             }
         }
     }
-    
+
     /**
      * Perform haptic feedback for error actions
      */
@@ -92,7 +92,7 @@ object HapticUtils {
             }
         }
     }
-    
+
     /**
      * Perform haptic feedback for swipe actions
      */
@@ -104,4 +104,3 @@ object HapticUtils {
         }
     }
 }
-

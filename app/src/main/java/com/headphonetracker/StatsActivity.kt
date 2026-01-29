@@ -1,6 +1,5 @@
 package com.headphonetracker
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
 import android.widget.LinearLayout
@@ -9,43 +8,70 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
-
-import com.headphonetracker.data.HeadphoneUsageDao
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
+import com.headphonetracker.data.HeadphoneUsageDao
 import com.headphonetracker.databinding.ActivityStatsBinding
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class StatsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityStatsBinding
+
     @Inject
     lateinit var headphoneUsageDao: HeadphoneUsageDao
 
     // App categories mapping
-    private val musicApps = setOf("com.spotify.music", "com.apple.android.music", "com.amazon.mp3", "com.google.android.apps.youtube.music", "com.soundcloud.android", "deezer.android.app", "com.pandora.android")
-    private val podcastApps = setOf("com.google.android.apps.podcasts", "com.spotify.music", "com.apple.podcasts", "fm.castbox.audiobook.radio.podcast", "com.bambuna.podcastaddict")
-    private val videoApps = setOf("com.google.android.youtube", "com.netflix.mediaclient", "com.amazon.avod.thirdpartyclient", "com.disney.disneyplus", "com.hbo.hbonow")
+    private val musicApps = setOf(
+        "com.spotify.music",
+        "com.apple.android.music",
+        "com.amazon.mp3",
+        "com.google.android.apps.youtube.music",
+        "com.soundcloud.android",
+        "deezer.android.app",
+        "com.pandora.android"
+    )
+    private val podcastApps = setOf(
+        "com.google.android.apps.podcasts",
+        "com.spotify.music",
+        "com.apple.podcasts",
+        "fm.castbox.audiobook.radio.podcast",
+        "com.bambuna.podcastaddict"
+    )
+    private val videoApps = setOf(
+        "com.google.android.youtube",
+        "com.netflix.mediaclient",
+        "com.amazon.avod.thirdpartyclient",
+        "com.disney.disneyplus",
+        "com.hbo.hbonow"
+    )
     private val socialApps = setOf("com.instagram.android", "com.zhiliaoapp.musically", "com.snapchat.android", "com.facebook.katana")
     private val gamingApps = setOf("com.supercell.clashofclans", "com.kiloo.subwaysurf", "com.mojang.minecraftpe")
-    private val callApps = setOf("com.google.android.dialer", "com.whatsapp", "org.telegram.messenger", "com.discord", "us.zoom.videomeetings")
+    private val callApps = setOf(
+        "com.google.android.dialer",
+        "com.whatsapp",
+        "org.telegram.messenger",
+        "com.discord",
+        "us.zoom.videomeetings"
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityStatsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-    // DAO is injected by Hilt
+        // DAO is injected by Hilt
 
         binding.toolbar.setNavigationOnClickListener { finish() }
 
@@ -82,7 +108,7 @@ class StatsActivity : AppCompatActivity() {
         // Calculate current streak
         var currentStreak = 0
         var checkDate = Calendar.getInstance()
-        
+
         for (i in 0..365) {
             val dateStr = dateFormat.format(checkDate.time)
             if (allDates.contains(dateStr)) {
@@ -100,7 +126,7 @@ class StatsActivity : AppCompatActivity() {
         var longestStreak = 0
         var tempStreak = 0
         val sortedDates = allDates.sorted()
-        
+
         for (i in sortedDates.indices) {
             if (i == 0) {
                 tempStreak = 1
@@ -108,7 +134,7 @@ class StatsActivity : AppCompatActivity() {
                 val prevDate = dateFormat.parse(sortedDates[i - 1])
                 val currDate = dateFormat.parse(sortedDates[i])
                 val diffDays = ((currDate?.time ?: 0) - (prevDate?.time ?: 0)) / (1000 * 60 * 60 * 24)
-                
+
                 if (diffDays == 1L) {
                     tempStreak++
                 } else {
@@ -158,8 +184,11 @@ class StatsActivity : AppCompatActivity() {
 
         binding.tvWeekChange.text = "${if (changePercent >= 0) "+" else ""}$changePercent%"
         binding.tvWeekChange.setTextColor(
-            if (changePercent >= 0) ContextCompat.getColor(this, R.color.success)
-            else ContextCompat.getColor(this, R.color.error)
+            if (changePercent >= 0) {
+                ContextCompat.getColor(this, R.color.success)
+            } else {
+                ContextCompat.getColor(this, R.color.error)
+            }
         )
     }
 
@@ -191,7 +220,7 @@ class StatsActivity : AppCompatActivity() {
             description.isEnabled = false
             legend.isEnabled = false
             setTouchEnabled(false)
-            
+
             xAxis.apply {
                 position = XAxis.XAxisPosition.BOTTOM
                 setDrawGridLines(false)
@@ -210,7 +239,7 @@ class StatsActivity : AppCompatActivity() {
                     }
                 }
             }
-            
+
             axisLeft.apply {
                 setDrawGridLines(true)
                 gridColor = ContextCompat.getColor(this@StatsActivity, R.color.divider)
@@ -223,7 +252,7 @@ class StatsActivity : AppCompatActivity() {
                     }
                 }
             }
-            
+
             axisRight.isEnabled = false
             setFitBars(true)
             invalidate()
@@ -285,7 +314,7 @@ class StatsActivity : AppCompatActivity() {
 
         sortedCategories.filter { it.value > 0 }.forEach { (category, duration) ->
             val percentage = (duration * 100 / totalDuration).toInt()
-            
+
             val itemView = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
@@ -342,10 +371,10 @@ class StatsActivity : AppCompatActivity() {
     private suspend fun loadMonthlyStats() {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val calendar = Calendar.getInstance()
-        
+
         calendar.set(Calendar.DAY_OF_MONTH, 1)
         val monthStart = dateFormat.format(calendar.time)
-        
+
         calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
         val monthEnd = dateFormat.format(calendar.time)
 
@@ -366,7 +395,7 @@ class StatsActivity : AppCompatActivity() {
     private fun formatDurationShort(seconds: Long): String {
         val hours = seconds / 3600
         val minutes = (seconds % 3600) / 60
-        
+
         return when {
             hours > 0 -> "${hours}h ${minutes}m"
             else -> "${minutes}m"
@@ -375,5 +404,3 @@ class StatsActivity : AppCompatActivity() {
 
     private fun Int.dpToPx(): Int = (this * resources.displayMetrics.density).toInt()
 }
-
-

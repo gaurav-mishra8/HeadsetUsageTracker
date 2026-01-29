@@ -1,6 +1,5 @@
 package com.headphonetracker
 
-import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -15,21 +14,22 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
-
 import com.headphonetracker.data.HeadphoneUsageDao
 import com.headphonetracker.databinding.ActivityExcludedAppsBinding
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ExcludedAppsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityExcludedAppsBinding
+
     @Inject
     lateinit var headphoneUsageDao: HeadphoneUsageDao
+
     @Inject
     lateinit var settingsRepository: com.headphonetracker.data.SettingsRepository
     private lateinit var adapter: ExcludedAppsAdapter
@@ -39,7 +39,7 @@ class ExcludedAppsActivity : AppCompatActivity() {
         binding = ActivityExcludedAppsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-    // DAO is injected by Hilt
+        // DAO is injected by Hilt
 
         binding.toolbar.setNavigationOnClickListener {
             HapticUtils.performClickFeedback(it)
@@ -62,74 +62,75 @@ class ExcludedAppsActivity : AppCompatActivity() {
         binding.rvApps.layoutManager = LinearLayoutManager(this)
         binding.rvApps.adapter = adapter
     }
-    
+
     private fun setupSwipeToDelete() {
         val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
-            0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+            0,
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
         ) {
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ): Boolean = false
+                override fun onMove(
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder,
+                    target: RecyclerView.ViewHolder
+                ): Boolean = false
 
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val position = viewHolder.adapterPosition
-                val app = adapter.apps[position]
-                
-                HapticUtils.performSwipeFeedback(viewHolder.itemView)
-                
-                // Remove from excluded apps if it was excluded
-                if (adapter.excludedApps.contains(app.packageName)) {
-                    adapter.excludedApps.remove(app.packageName)
-                    updateExcludedApp(app.packageName, false)
-                }
-                
-                // Notify adapter
-                adapter.notifyItemChanged(position)
-            }
+                override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                    val position = viewHolder.adapterPosition
+                    val app = adapter.apps[position]
 
-            override fun onChildDraw(
-                c: android.graphics.Canvas,
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                dX: Float,
-                dY: Float,
-                actionState: Int,
-                isCurrentlyActive: Boolean
-            ) {
-                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    val itemView = viewHolder.itemView
-                    val background = ContextCompat.getDrawable(
-                        this@ExcludedAppsActivity,
-                        R.drawable.swipe_delete_background
-                    )
-                    background?.setBounds(
-                        itemView.right + dX.toInt(),
-                        itemView.top,
-                        itemView.right,
-                        itemView.bottom
-                    )
-                    background?.draw(c)
-                    
-                    val icon = ContextCompat.getDrawable(
-                        this@ExcludedAppsActivity,
-                        R.drawable.ic_delete
-                    )
-                    val iconMargin = (itemView.height - (icon?.intrinsicHeight ?: 0)) / 2
-                    val iconTop = itemView.top + iconMargin
-                    val iconBottom = iconTop + (icon?.intrinsicHeight ?: 0)
-                    val iconLeft = itemView.right - iconMargin - (icon?.intrinsicWidth ?: 0)
-                    val iconRight = itemView.right - iconMargin
-                    
-                    icon?.setBounds(iconLeft, iconTop, iconRight, iconBottom)
-                    icon?.setTint(ContextCompat.getColor(this@ExcludedAppsActivity, android.R.color.white))
-                    icon?.draw(c)
+                    HapticUtils.performSwipeFeedback(viewHolder.itemView)
+
+                    // Remove from excluded apps if it was excluded
+                    if (adapter.excludedApps.contains(app.packageName)) {
+                        adapter.excludedApps.remove(app.packageName)
+                        updateExcludedApp(app.packageName, false)
+                    }
+
+                    // Notify adapter
+                    adapter.notifyItemChanged(position)
                 }
-                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-            }
-        })
-        
+
+                override fun onChildDraw(
+                    c: android.graphics.Canvas,
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder,
+                    dX: Float,
+                    dY: Float,
+                    actionState: Int,
+                    isCurrentlyActive: Boolean
+                ) {
+                    if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                        val itemView = viewHolder.itemView
+                        val background = ContextCompat.getDrawable(
+                            this@ExcludedAppsActivity,
+                            R.drawable.swipe_delete_background
+                        )
+                        background?.setBounds(
+                            itemView.right + dX.toInt(),
+                            itemView.top,
+                            itemView.right,
+                            itemView.bottom
+                        )
+                        background?.draw(c)
+
+                        val icon = ContextCompat.getDrawable(
+                            this@ExcludedAppsActivity,
+                            R.drawable.ic_delete
+                        )
+                        val iconMargin = (itemView.height - (icon?.intrinsicHeight ?: 0)) / 2
+                        val iconTop = itemView.top + iconMargin
+                        val iconBottom = iconTop + (icon?.intrinsicHeight ?: 0)
+                        val iconLeft = itemView.right - iconMargin - (icon?.intrinsicWidth ?: 0)
+                        val iconRight = itemView.right - iconMargin
+
+                        icon?.setBounds(iconLeft, iconTop, iconRight, iconBottom)
+                        icon?.setTint(ContextCompat.getColor(this@ExcludedAppsActivity, android.R.color.white))
+                        icon?.draw(c)
+                    }
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                }
+            })
+
         itemTouchHelper.attachToRecyclerView(binding.rvApps)
     }
 
@@ -240,4 +241,3 @@ class ExcludedAppsActivity : AppCompatActivity() {
         }
     }
 }
-
