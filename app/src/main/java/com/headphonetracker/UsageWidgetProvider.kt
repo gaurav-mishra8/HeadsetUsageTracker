@@ -7,7 +7,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
-import com.headphonetracker.data.AppDatabase
+import com.headphonetracker.di.AppEntryPoints
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -48,15 +49,16 @@ class UsageWidgetProvider : AppWidgetProvider() {
             appWidgetId: Int
         ) {
             CoroutineScope(Dispatchers.Main).launch {
-                val database = AppDatabase.getDatabase(context)
+                val entryPoint = EntryPointAccessors.fromApplication(context.applicationContext, AppEntryPoints::class.java)
+                val dao = entryPoint.getHeadphoneUsageDao()
+                val settingsRepository = entryPoint.getSettingsRepository()
                 val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                
+
                 val totalDuration = withContext(Dispatchers.IO) {
-                    database.headphoneUsageDao().getTotalUsageForDate(today) ?: 0L
+                    dao.getTotalUsageForDate(today) ?: 0L
                 }
 
-                val prefs = context.getSharedPreferences("headphone_tracker_prefs", Context.MODE_PRIVATE)
-                val isTracking = prefs.getBoolean("is_tracking", false)
+                val isTracking = settingsRepository.isTracking()
 
                 val views = RemoteViews(context.packageName, R.layout.widget_usage).apply {
                     setTextViewText(R.id.tvWidgetTime, formatDuration(totalDuration))

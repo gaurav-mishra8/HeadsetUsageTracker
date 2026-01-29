@@ -30,7 +30,8 @@ class ExcludedAppsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityExcludedAppsBinding
     @Inject
     lateinit var headphoneUsageDao: HeadphoneUsageDao
-    private val prefs by lazy { getSharedPreferences("headphone_tracker_prefs", Context.MODE_PRIVATE) }
+    @Inject
+    lateinit var settingsRepository: com.headphonetracker.data.SettingsRepository
     private lateinit var adapter: ExcludedAppsAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -133,7 +134,7 @@ class ExcludedAppsActivity : AppCompatActivity() {
     }
 
     private fun getExcludedApps(): MutableSet<String> {
-        return prefs.getStringSet("excluded_apps", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
+        return settingsRepository.getExcludedApps().toMutableSet()
     }
 
     private fun updateExcludedApp(packageName: String, isExcluded: Boolean) {
@@ -143,7 +144,7 @@ class ExcludedAppsActivity : AppCompatActivity() {
         } else {
             excludedApps.remove(packageName)
         }
-        prefs.edit().putStringSet("excluded_apps", excludedApps).apply()
+        settingsRepository.setExcludedApps(excludedApps)
     }
 
     private fun loadApps() {

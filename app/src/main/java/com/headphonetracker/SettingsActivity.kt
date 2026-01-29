@@ -34,7 +34,8 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySettingsBinding
     @Inject
     lateinit var headphoneUsageDao: HeadphoneUsageDao
-    private val prefs by lazy { getSharedPreferences("headphone_tracker_prefs", Context.MODE_PRIVATE) }
+    @Inject
+    lateinit var settingsRepository: com.headphonetracker.data.SettingsRepository
 
     private val restoreFilePicker = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { restoreFromUri(it) }
@@ -73,12 +74,12 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         // Break Reminders
-        binding.switchBreakReminders.isChecked = prefs.getBoolean("break_reminders_enabled", false)
-        binding.switchBreakReminders.setOnCheckedChangeListener { view, isChecked ->
-            HapticUtils.performSelectionFeedback(view)
-            prefs.edit().putBoolean("break_reminders_enabled", isChecked).apply()
-            binding.cardBreakInterval.alpha = if (isChecked) 1f else 0.5f
-            binding.cardBreakInterval.isEnabled = isChecked
+            binding.switchBreakReminders.isChecked = settingsRepository.isBreakRemindersEnabled()
+            binding.switchBreakReminders.setOnCheckedChangeListener { view, isChecked ->
+                HapticUtils.performSelectionFeedback(view)
+                settingsRepository.setBreakRemindersEnabled(isChecked)
+                binding.cardBreakInterval.alpha = if (isChecked) 1f else 0.5f
+                binding.cardBreakInterval.isEnabled = isChecked
         }
         
         // Break Interval
@@ -92,7 +93,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun updateDailyLimitDisplay() {
-        val limitMinutes = prefs.getInt("daily_limit_minutes", 0)
+        val limitMinutes = settingsRepository.getDailyLimitMinutes()
         binding.tvDailyLimitValue.text = if (limitMinutes == 0) {
             "No limit set"
         } else {
@@ -105,13 +106,13 @@ class SettingsActivity : AppCompatActivity() {
     private fun showDailyLimitPicker() {
         val options = arrayOf("No limit", "30 minutes", "1 hour", "1.5 hours", "2 hours", "3 hours", "4 hours", "5 hours", "6 hours")
         val values = intArrayOf(0, 30, 60, 90, 120, 180, 240, 300, 360)
-        val currentLimit = prefs.getInt("daily_limit_minutes", 0)
+        val currentLimit = settingsRepository.getDailyLimitMinutes()
         val currentIndex = values.indexOf(currentLimit).coerceAtLeast(0)
 
         MaterialAlertDialogBuilder(this, R.style.AlertDialogTheme)
             .setTitle("Daily listening limit")
             .setSingleChoiceItems(options, currentIndex) { dialog, which ->
-                prefs.edit().putInt("daily_limit_minutes", values[which]).apply()
+            settingsRepository.setDailyLimitMinutes(values[which])
                 updateDailyLimitDisplay()
                 dialog.dismiss()
             }
@@ -120,20 +121,20 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun updateBreakIntervalDisplay() {
-        val intervalMinutes = prefs.getInt("break_interval_minutes", 60)
+        val intervalMinutes = settingsRepository.getBreakIntervalMinutes()
         binding.tvBreakInterval.text = "Every $intervalMinutes minutes"
     }
 
     private fun showBreakIntervalPicker() {
         val options = arrayOf("Every 30 minutes", "Every 45 minutes", "Every 60 minutes", "Every 90 minutes", "Every 120 minutes")
         val values = intArrayOf(30, 45, 60, 90, 120)
-        val currentInterval = prefs.getInt("break_interval_minutes", 60)
+        val currentInterval = settingsRepository.getBreakIntervalMinutes()
         val currentIndex = values.indexOf(currentInterval).coerceAtLeast(2)
 
         MaterialAlertDialogBuilder(this, R.style.AlertDialogTheme)
             .setTitle("Break interval")
             .setSingleChoiceItems(options, currentIndex) { dialog, which ->
-                prefs.edit().putInt("break_interval_minutes", values[which]).apply()
+            settingsRepository.setBreakIntervalMinutes(values[which])
                 updateBreakIntervalDisplay()
                 dialog.dismiss()
             }
@@ -145,10 +146,10 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setupNotificationSettings() {
         // Daily Summary
-        binding.switchDailySummary.isChecked = prefs.getBoolean("daily_summary_enabled", false)
+            binding.switchDailySummary.isChecked = settingsRepository.isDailySummaryEnabled()
         binding.switchDailySummary.setOnCheckedChangeListener { view, isChecked ->
             HapticUtils.performSelectionFeedback(view)
-            prefs.edit().putBoolean("daily_summary_enabled", isChecked).apply()
+                settingsRepository.setDailySummaryEnabled(isChecked)
             if (isChecked) {
                 scheduleDailySummary()
                 Toast.makeText(this, "Daily summary enabled at 9 PM", Toast.LENGTH_SHORT).show()
@@ -156,10 +157,10 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         // Milestone Alerts
-        binding.switchMilestones.isChecked = prefs.getBoolean("milestones_enabled", true)
+            binding.switchMilestones.isChecked = settingsRepository.isMilestonesEnabled()
         binding.switchMilestones.setOnCheckedChangeListener { view, isChecked ->
             HapticUtils.performSelectionFeedback(view)
-            prefs.edit().putBoolean("milestones_enabled", isChecked).apply()
+                settingsRepository.setMilestonesEnabled(isChecked)
         }
     }
 
@@ -185,7 +186,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun updateThemeDisplay() {
-        val theme = prefs.getString("app_theme", "dark")
+        val theme = settingsRepository.getAppTheme()
         binding.tvThemeValue.text = when (theme) {
             "light" -> "Light"
             "dark" -> "Dark"
@@ -196,13 +197,13 @@ class SettingsActivity : AppCompatActivity() {
     private fun showThemePicker() {
         val options = arrayOf("Light", "Dark", "System default")
         val values = arrayOf("light", "dark", "system")
-        val currentTheme = prefs.getString("app_theme", "dark")
+        val currentTheme = settingsRepository.getAppTheme()
         val currentIndex = values.indexOf(currentTheme).coerceAtLeast(1)
 
         MaterialAlertDialogBuilder(this, R.style.AlertDialogTheme)
             .setTitle("Choose theme")
             .setSingleChoiceItems(options, currentIndex) { dialog, which ->
-                prefs.edit().putString("app_theme", values[which]).apply()
+            settingsRepository.setAppTheme(values[which])
                 updateThemeDisplay()
                 applyTheme(values[which])
                 dialog.dismiss()
@@ -222,13 +223,13 @@ class SettingsActivity : AppCompatActivity() {
     private fun showColorPicker() {
         val colors = arrayOf("Cyan (Default)", "Purple", "Teal", "Orange", "Pink", "Green")
         val colorValues = arrayOf("cyan", "purple", "teal", "orange", "pink", "green")
-        val currentColor = prefs.getString("accent_color", "cyan")
+        val currentColor = settingsRepository.getAccentColor()
         val currentIndex = colorValues.indexOf(currentColor).coerceAtLeast(0)
 
         MaterialAlertDialogBuilder(this, R.style.AlertDialogTheme)
             .setTitle("Accent color")
             .setSingleChoiceItems(colors, currentIndex) { dialog, which ->
-                prefs.edit().putString("accent_color", colorValues[which]).apply()
+            settingsRepository.setAccentColor(colorValues[which])
                 Toast.makeText(this, "Restart app to apply color", Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
             }
@@ -240,10 +241,10 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setupTrackingSettings() {
         // Auto-start
-        binding.switchAutoStart.isChecked = prefs.getBoolean("auto_start_enabled", false)
+            binding.switchAutoStart.isChecked = settingsRepository.isAutoStartEnabled()
         binding.switchAutoStart.setOnCheckedChangeListener { view, isChecked ->
             HapticUtils.performSelectionFeedback(view)
-            prefs.edit().putBoolean("auto_start_enabled", isChecked).apply()
+                settingsRepository.setAutoStartEnabled(isChecked)
             if (isChecked) {
                 Toast.makeText(this, "Tracking will start on device boot", Toast.LENGTH_SHORT).show()
             }
@@ -258,7 +259,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun updateExcludedAppsCount() {
-        val excludedApps = prefs.getStringSet("excluded_apps", emptySet()) ?: emptySet()
+        val excludedApps = settingsRepository.getExcludedApps()
         binding.tvExcludedCount.text = if (excludedApps.isEmpty()) {
             "No apps excluded"
         } else {

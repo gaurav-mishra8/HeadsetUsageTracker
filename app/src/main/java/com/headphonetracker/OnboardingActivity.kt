@@ -9,6 +9,10 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+
+import com.headphonetracker.data.SettingsRepository
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
@@ -25,7 +29,11 @@ data class OnboardingPage(
     val trivia: String? = null
 )
 
+@AndroidEntryPoint
 class OnboardingActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
 
     private lateinit var binding: ActivityOnboardingBinding
     private lateinit var adapter: OnboardingAdapter
@@ -175,10 +183,7 @@ class OnboardingActivity : AppCompatActivity() {
     }
 
     private fun finishOnboarding() {
-        getSharedPreferences("headphone_tracker_prefs", MODE_PRIVATE)
-            .edit()
-            .putBoolean("onboarding_completed", true)
-            .apply()
+        settingsRepository.setOnboardingCompleted(true)
 
         // Start MainActivity
         startActivity(android.content.Intent(this, MainActivity::class.java))

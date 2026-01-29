@@ -25,6 +25,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 import com.headphonetracker.data.HeadphoneUsageDao
+import com.headphonetracker.data.SettingsRepository
 import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
@@ -47,6 +48,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     @Inject
     lateinit var headphoneUsageDao: HeadphoneUsageDao
+
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
     private lateinit var adapter: AppUsageAdapter
     private var isTracking = false
     private var refreshJob: Job? = null
@@ -75,9 +79,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Check if onboarding is completed
-        val prefs = getSharedPreferences("headphone_tracker_prefs", Context.MODE_PRIVATE)
-        val onboardingCompleted = prefs.getBoolean("onboarding_completed", false)
+    // Check if onboarding is completed
+    val onboardingCompleted = settingsRepository.isOnboardingCompleted()
         
         if (!onboardingCompleted) {
             startActivity(Intent(this, OnboardingActivity::class.java))

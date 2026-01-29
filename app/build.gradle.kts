@@ -90,6 +90,11 @@ dependencies {
     // Hilt for DI
     implementation("com.google.dagger:hilt-android:2.46.1")
     kapt("com.google.dagger:hilt-compiler:2.46.1")
+    // Hilt testing
+    testImplementation("com.google.dagger:hilt-android-testing:2.46.1")
+    kaptTest("com.google.dagger:hilt-compiler:2.46.1")
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.46.1")
+    kaptAndroidTest("com.google.dagger:hilt-compiler:2.46.1")
     
     // Testing
     testImplementation("junit:junit:4.13.2")

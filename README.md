@@ -157,3 +157,40 @@ Notes and alternatives:
 - If you prefer not to store a keystore in Actions, consider using Google Play App Signing and upload an unsigned AAB instead.
 
 
+## Developer updates (recent)
+
+The repository was recently migrated to use Hilt for dependency injection and improved test/CI workflows. Key changes:
+
+- Hilt migration
+   - Core app components (Service and Activities) are annotated with `@AndroidEntryPoint` and receive `HeadphoneUsageDao` and `SettingsRepository` via constructor/property injection.
+
+- Preferences wrapper
+   - `SettingsRepository` (provided by a `PreferencesModule`) centralizes SharedPreferences access and is injected across the app instead of calling `getSharedPreferences(...)` directly.
+
+- Test scaffolding
+   - Hilt testing support was added (`hilt-android-testing`) and an example `TestDatabaseModule` provides an in-memory Room database for `androidTest`.
+   - Instrumentation tests were migrated to `@HiltAndroidTest` and use `HiltAndroidRule` to inject the test DB + `SettingsRepository`.
+
+- CI / APK artifact
+   - A GitHub Actions workflow (`.github/workflows/build-apk.yml`) builds a debug APK and uploads it as an artifact so you can download and install the app when an emulator/device is not available in this environment.
+
+- Static analysis
+   - `detekt` was run and a baseline created for the legacy issues so CI will only block on new issues.
+
+How to run tests locally
+
+1. Start an emulator (or connect a device).
+2. From the project root run:
+
+```bash
+./gradlew :app:installDebug
+./gradlew :app:connectedAndroidTest
+```
+
+If you prefer to install the debug APK produced by CI, trigger the `build-apk` workflow in GitHub Actions, download the `app-debug.apk` artifact, then:
+
+```bash
+adb install -r path/to/app-debug.apk
+```
+
+

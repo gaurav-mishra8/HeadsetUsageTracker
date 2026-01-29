@@ -33,7 +33,8 @@ class HeadphoneTrackingService : LifecycleService() {
     private val pkgManager by lazy { applicationContext.packageManager }
     @Inject
     lateinit var headphoneUsageDao: HeadphoneUsageDao
-    private val prefs by lazy { getSharedPreferences("headphone_tracker_prefs", Context.MODE_PRIVATE) }
+    @Inject
+    lateinit var settingsRepository: com.headphonetracker.data.SettingsRepository
     
     private var trackingJob: Job? = null
     private var isTracking = false
@@ -129,10 +130,10 @@ class HeadphoneTrackingService : LifecycleService() {
     private fun startTracking() {
         if (isTracking) return
         
-        isTracking = true
-        isTrackingFlow.value = true
-        sessionStartTime = System.currentTimeMillis()
-        prefs.edit().putBoolean("is_tracking", true).apply()
+    isTracking = true
+    isTrackingFlow.value = true
+    sessionStartTime = System.currentTimeMillis()
+    settingsRepository.setTracking(true)
         wakeLock.acquire(10 * 60 * 60 * 1000L) // 10 hours
         
         // Update widget
@@ -160,9 +161,9 @@ class HeadphoneTrackingService : LifecycleService() {
     private fun stopTracking() {
         if (!isTracking) return
         
-        isTracking = false
-        isTrackingFlow.value = false
-        prefs.edit().putBoolean("is_tracking", false).apply()
+    isTracking = false
+    isTrackingFlow.value = false
+    settingsRepository.setTracking(false)
         trackingJob?.cancel()
         
         if (wakeLock.isHeld) {
@@ -209,7 +210,7 @@ class HeadphoneTrackingService : LifecycleService() {
             val currentPackage = audioPlayingApp ?: getCurrentForegroundApp()
             
             // Check excluded apps
-            val excludedApps = prefs.getStringSet("excluded_apps", emptySet()) ?: emptySet()
+            val excludedApps = settingsRepository.getExcludedApps()
             
             // Skip our own app, system UI, and excluded apps
             val shouldTrack = currentPackage != null && 
@@ -442,10 +443,10 @@ class HeadphoneTrackingService : LifecycleService() {
     }
     
     private fun checkBreakReminder() {
-        val breakRemindersEnabled = prefs.getBoolean("break_reminders_enabled", false)
+        val breakRemindersEnabled = settingsRepository.isBreakRemindersEnabled()
         if (!breakRemindersEnabled) return
-        
-        val intervalMinutes = prefs.getInt("break_interval_minutes", 60)
+
+        val intervalMinutes = settingsRepository.getBreakIntervalMinutes()
         val intervalMs = intervalMinutes * 60 * 1000L
         val now = System.currentTimeMillis()
         
@@ -470,7 +471,7 @@ class HeadphoneTrackingService : LifecycleService() {
     }
     
     private suspend fun checkDailyLimit() {
-        val limitMinutes = prefs.getInt("daily_limit_minutes", 0)
+        val limitMinutes = settingsRepository.getDailyLimitMinutes()
         if (limitMinutes == 0) return
         
         val now = System.currentTimeMillis()
