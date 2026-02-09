@@ -107,6 +107,8 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-core:5.7.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+    // Provide a real org.json implementation on the JVM test classpath so JSONObject.put etc. work
+    testImplementation("org.json:json:20230227")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
     testImplementation("com.google.truth:truth:1.1.4")
