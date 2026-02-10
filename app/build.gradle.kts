@@ -30,13 +30,19 @@ android {
     val keystorePassword: String? = (project.findProperty("keystorePassword") as String?) ?: System.getenv("KEYSTORE_PASSWORD")
     val keyAlias: String? = (project.findProperty("keyAlias") as String?) ?: System.getenv("KEY_ALIAS")
     val keyPassword: String? = (project.findProperty("keyPassword") as String?) ?: System.getenv("KEY_PASSWORD")
+    val hasReleaseSigningConfig = !keystorePath.isNullOrBlank() &&
+        !keystorePassword.isNullOrBlank() &&
+        !keyAlias.isNullOrBlank() &&
+        !keyPassword.isNullOrBlank()
 
     signingConfigs {
         create("release") {
-            keystorePath?.let { storeFile = file(it) }
-            keystorePassword?.let { storePassword = it }
-            keyAlias?.let { this.keyAlias = it }
-            keyPassword?.let { this.keyPassword = it }
+            if (hasReleaseSigningConfig) {
+                storeFile = file(keystorePath!!)
+                storePassword = keystorePassword!!
+                this.keyAlias = keyAlias!!
+                this.keyPassword = keyPassword!!
+            }
         }
     }
 
@@ -58,8 +64,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Use signing config if provided via properties or environment variables
-            signingConfig = signingConfigs.findByName("release")
+            // Use release signing only when all required properties are provided.
+            if (hasReleaseSigningConfig) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     compileOptions {

@@ -41,7 +41,11 @@ class AppUsageAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val usage = usageList[position]
+        val adapterPosition = holder.adapterPosition
+        if (adapterPosition == RecyclerView.NO_POSITION) {
+            return
+        }
+        val usage = usageList[adapterPosition]
 
         holder.binding.tvAppName.text = usage.appName
         holder.binding.tvUsageTime.text = formatDuration(usage.totalDuration)
@@ -63,9 +67,9 @@ class AppUsageAdapter(
         loadAppIcon(holder, usage.packageName)
 
         // Item animation
-        if (position > lastAnimatedPosition) {
-            animateItem(holder, position)
-            lastAnimatedPosition = position
+        if (adapterPosition > lastAnimatedPosition) {
+            animateItem(holder, adapterPosition)
+            lastAnimatedPosition = adapterPosition
         }
     }
 
@@ -154,24 +158,26 @@ class AppUsageAdapter(
 
         usageList = sortedList
         totalDuration = newTotal
-        // In plain JVM unit tests the RecyclerView's AdapterDataObservable can be null
-        // which causes notifyDataSetChanged() to NPE. Guard to be null-safe so tests
-        // can run without attaching an adapter to a RecyclerView.
-        try {
+        // In plain JVM unit tests from the Android stub jar, adapter internals can be null.
+        // Skip notifications when that stub state is missing.
+        if (canNotifyDataSetChanged()) {
             notifyDataSetChanged()
-        } catch (e: NullPointerException) {
-            // Some test environments throw when calling android.util.Log; guard the log call so
-            // tests don't fail because of missing Android framework logging implementations.
-            try {
-                android.util.Log.w("AppUsageAdapter", "notifyDataSetChanged() skipped due to null observers in test environment")
-            } catch (_: Throwable) {
-                // swallow logging errors in headless/JVM test environments
-            }
         }
     }
 
     fun clearIconCache() {
         iconCache.clear()
+    }
+
+    private fun canNotifyDataSetChanged(): Boolean {
+        return runCatching {
+            val observableField = RecyclerView.Adapter::class.java.getDeclaredField("mObservable")
+            observableField.isAccessible = true
+            val observable = observableField.get(this) ?: return false
+            val observersField = observable.javaClass.getDeclaredField("mObservers")
+            observersField.isAccessible = true
+            observersField.get(observable) != null
+        }.getOrDefault(false)
     }
 
     private fun formatDuration(millis: Long): String {

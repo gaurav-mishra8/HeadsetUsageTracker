@@ -137,18 +137,19 @@ class ExportUtilsTest {
         sb.append("HEADPHONE USAGE REPORT\n")
         sb.append("Generated: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())}\n")
         sb.append("\n")
+        // Build CSV sections
+        appendDailySummary(sb, dailySummary)
 
+        val totalMs = dailySummary.sumOf { it.totalDuration }
 
-            // Build CSV sections
-            appendDailySummary(sb, dailySummary)
+        appendDetailedUsage(sb, detailedUsage)
 
-            val totalMs = dailySummary.sumOf { it.totalDuration }
+        appendAppSummary(sb, detailedUsage, totalMs)
 
-            appendDetailedUsage(sb, detailedUsage)
+        return sb.toString()
+    }
 
-            appendAppSummary(sb, detailedUsage, totalMs)
-
-        // Detailed Usage
+    // Detailed Usage
 
     private fun appendDailySummary(sb: StringBuilder, dailySummary: List<DailyUsageSummary>) {
         sb.append("=== DAILY SUMMARY ===\n")
@@ -215,8 +216,7 @@ class ExportUtilsTest {
         appTotals.forEach { (appName, packageName, total) ->
             appendAppSummaryEntry(sb, appName, packageName, total, totalMs)
         }
-
-
+    }
     private fun computeAppTotals(detailedUsage: List<DetailedUsageSummary>): List<Triple<String, String, Long>> {
         return detailedUsage
             .groupBy { it.packageName }
@@ -255,44 +255,6 @@ class ExportUtilsTest {
             .append(',')
             .append(percentageStr)
             .append('\n')
-    }
-        // App Summary
-        sb.append("=== APP SUMMARY (WEEKLY TOTAL) ===\n")
-        sb.append("App Name,Package Name,Total Duration (ms),Hours,Minutes,Seconds,Percentage\n")
-
-        val appTotals = detailedUsage
-            .groupBy { it.packageName }
-            .map { (pkg, usages) ->
-                Triple(
-                    usages.first().appName,
-                    pkg,
-                    usages.sumOf { it.totalDuration }
-                )
-            }
-            .sortedByDescending { it.third }
-
-        appTotals.forEach { (appName, packageName, total) ->
-            val duration = formatDurationForCsv(total)
-            val percentage = if (totalMs > 0) (total * 100.0 / totalMs) else 0.0
-            val escapedAppName = "\"${appName.replace("\"", "\"\"")}\""
-            val percentageStr = String.format(Locale.getDefault(), "%.1f%%", percentage)
-            sb.append(escapedAppName)
-                .append(',')
-                .append(packageName)
-                .append(',')
-                .append(total.toString())
-                .append(',')
-                .append(duration.hours.toString())
-                .append(',')
-                .append(duration.minutes.toString())
-                .append(',')
-                .append(duration.seconds.toString())
-                .append(',')
-                .append(percentageStr)
-                .append('\n')
-        }
-
-        return sb.toString()
     }
 
     private data class DurationParts(

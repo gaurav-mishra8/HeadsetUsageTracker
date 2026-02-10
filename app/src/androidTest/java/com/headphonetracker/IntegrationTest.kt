@@ -34,7 +34,7 @@ class IntegrationTest {
     }
 
     @Test
-    fun `test database and activity integration`() = runBlocking {
+    fun testDatabaseAndActivityIntegration() = runBlocking {
         // Insert test data
         val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         val usage = HeadphoneUsage(
@@ -55,7 +55,7 @@ class IntegrationTest {
     }
 
     @Test
-    fun `test activity can access database`() {
+    fun testActivityCanAccessDatabase() {
         val scenario = ActivityScenario.launch(MainActivity::class.java)
 
         // Activity should be able to access database
