@@ -47,4 +47,18 @@ class SettingsRepository @Inject constructor(
     // Tracking state (transient)
     fun isTracking(): Boolean = prefs.getBoolean("is_tracking", false)
     fun setTracking(value: Boolean) = prefs.edit().putBoolean("is_tracking", value).apply()
+
+    // Google Drive sync
+    fun isDriveSyncEnabled(): Boolean = prefs.getBoolean("drive_sync_enabled", false)
+    fun setDriveSyncEnabled(value: Boolean) = prefs.edit().putBoolean("drive_sync_enabled", value).apply()
+    fun getDriveAccountEmail(): String = prefs.getString("drive_account_email", "") ?: ""
+    fun setDriveAccountEmail(value: String) = prefs.edit().putString("drive_account_email", value).apply()
+    fun getDriveLastSyncTime(): Long = prefs.getLong("drive_last_sync_time", 0L)
+    fun setDriveLastSyncTime(value: Long) = prefs.edit().putLong("drive_last_sync_time", value).apply()
+    fun getDriveLastError(): String = prefs.getString("drive_last_error", "") ?: ""
+    fun setDriveLastError(value: String) = prefs.edit().putString("drive_last_error", value).apply()
+    fun getDriveSyncIntervalMinutes(): Int = prefs.getInt("drive_sync_interval_minutes", 60)
+    fun setDriveSyncIntervalMinutes(value: Int) = prefs.edit().putInt("drive_sync_interval_minutes", value).apply()
+    fun isDriveRestorePrompted(): Boolean = prefs.getBoolean("drive_restore_prompted", false)
+    fun setDriveRestorePrompted(value: Boolean) = prefs.edit().putBoolean("drive_restore_prompted", value).apply()
 }

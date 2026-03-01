@@ -12,6 +12,7 @@ An Android application that tracks the amount of time spent listening to headpho
   - Bar chart showing daily usage over the last 7 days
 - **Detailed App List**: View individual app usage with icons and percentages
 - **Background Service**: Continues tracking even when the app is in the background
+- **Google Drive Sync**: Backup/restore your tracking data to Drive (appDataFolder)
 
 ## Requirements
 
@@ -34,6 +35,24 @@ An Android application that tracks the amount of time spent listening to headpho
    ```bash
    ./gradlew installDebug
    ```
+
+## Google Drive Sync Setup (optional)
+
+To enable Drive backup/restore, configure an OAuth client in Google Cloud Console:
+
+1. Enable the **Google Drive API** for your project.
+2. Configure an **OAuth consent screen** (internal/external).
+3. Create an **OAuth client ID** for Android with your app's package name and SHA-1 signing certificate.
+4. Build and run the app, then connect Google Drive from **Settings → Data → Google Drive sync**.
+
+Backups are stored in the app-specific Drive space (`appDataFolder`) as
+`headphone_tracker_backup.json`.
+
+When Drive sync is enabled, the app schedules a periodic background sync (every ~15 minutes, when
+network is available and battery is not low) using WorkManager.
+
+You can customize the sync interval, run a manual “Sync now”, and view the last sync/error status
+in **Settings → Data → Google Drive sync**.
 
 ## Permissions
 

@@ -10,3 +10,9 @@
 # Keep MPAndroidChart
 -keep class com.github.mikephil.charting.** { *; }
 
+# Keep Google Drive API client
+-keep class com.google.api.client.** { *; }
+-keep class com.google.api.services.drive.** { *; }
+-dontwarn com.google.api.client.**
+-dontwarn com.google.api.services.drive.**
+

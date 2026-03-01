@@ -102,6 +102,16 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
+    // WorkManager for background sync
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // Google Drive sync
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("com.google.api-client:google-api-client-android:1.34.0")
+    implementation("com.google.api-client:google-api-client-gson:1.34.0")
+    implementation("com.google.http-client:google-http-client-android:1.43.3")
+    implementation("com.google.apis:google-api-services-drive:v3-rev20230822-2.0.0")
+
     // Hilt for DI
     implementation("com.google.dagger:hilt-android:2.46.1")
     kapt("com.google.dagger:hilt-compiler:2.46.1")

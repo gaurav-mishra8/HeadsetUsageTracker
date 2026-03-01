@@ -1,5 +1,6 @@
 package com.headphonetracker
 
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -9,16 +10,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.common.api.ApiException
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.headphonetracker.data.HeadphoneUsage
+import com.headphonetracker.data.BackupJsonUtils
 import com.headphonetracker.data.HeadphoneUsageDao
 import com.headphonetracker.databinding.ActivitySettingsBinding
+import com.headphonetracker.sync.DriveSyncScheduler
+import com.headphonetracker.sync.DriveSyncManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
-import org.json.JSONObject
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -36,8 +39,38 @@ class SettingsActivity : AppCompatActivity() {
     @Inject
     lateinit var settingsRepository: com.headphonetracker.data.SettingsRepository
 
+    private val driveSyncManager by lazy { DriveSyncManager(this) }
+    private var pendingDriveAction: DriveAction? = null
+
     private val restoreFilePicker = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { restoreFromUri(it) }
+    }
+
+    private val driveSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode != Activity.RESULT_OK) {
+            pendingDriveAction = null
+            Toast.makeText(this, "Google Drive sign-in cancelled", Toast.LENGTH_SHORT).show()
+            return@registerForActivityResult
+        }
+
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            settingsRepository.setDriveSyncEnabled(true)
+            settingsRepository.setDriveAccountEmail(account.email ?: "")
+            updateDriveStatus()
+            Toast.makeText(this, "Google Drive connected", Toast.LENGTH_SHORT).show()
+
+            when (pendingDriveAction) {
+                DriveAction.BACKUP -> backupToDrive()
+                DriveAction.RESTORE -> restoreFromDrive()
+                null -> Unit
+            }
+        } catch (e: ApiException) {
+            Toast.makeText(this, "Drive sign-in failed: ${e.statusCode}", Toast.LENGTH_SHORT).show()
+        } finally {
+            pendingDriveAction = null
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -269,6 +302,7 @@ class SettingsActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateExcludedAppsCount()
+        updateDriveStatus()
     }
 
     // ==================== DATA SETTINGS ====================
@@ -282,6 +316,26 @@ class SettingsActivity : AppCompatActivity() {
             HapticUtils.performClickFeedback(it)
             restoreFilePicker.launch("application/json")
         }
+        binding.cardDriveConnect.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
+            handleDriveConnectClick()
+        }
+        binding.cardDriveBackup.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
+            handleDriveBackupClick()
+        }
+        binding.cardDriveRestore.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
+            handleDriveRestoreClick()
+        }
+        binding.cardDriveSyncNow.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
+            handleDriveSyncNowClick()
+        }
+        binding.cardDriveSyncInterval.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
+            showDriveIntervalPicker()
+        }
         binding.cardExportData.setOnClickListener {
             HapticUtils.performClickFeedback(it)
             exportAllData()
@@ -290,46 +344,21 @@ class SettingsActivity : AppCompatActivity() {
             HapticUtils.performClickFeedback(it)
             showClearDataConfirmation()
         }
+
+        updateDriveStatus()
     }
 
     private fun backupData() {
         lifecycleScope.launch {
             try {
-                val allData = withContext(Dispatchers.IO) {
-                    headphoneUsageDao.getAllUsage()
-                }
-
-                if (allData.isEmpty()) {
+                val jsonString = buildBackupJsonString() ?: run {
                     Toast.makeText(this@SettingsActivity, "No data to backup", Toast.LENGTH_SHORT).show()
                     return@launch
                 }
 
-                val json = JSONObject().apply {
-                    put("version", 1)
-                    put("exported_at", System.currentTimeMillis())
-                    put(
-                        "data",
-                        JSONArray().apply {
-                            allData.forEach { usage ->
-                                put(
-                                    JSONObject().apply {
-                                        put("id", usage.id)
-                                        put("date", usage.date)
-                                        put("packageName", usage.packageName)
-                                        put("appName", usage.appName)
-                                        put("duration", usage.duration)
-                                        put("startTime", usage.startTime)
-                                        put("endTime", usage.endTime)
-                                    }
-                                )
-                            }
-                        }
-                    )
-                }
-
                 val fileName = "headphone_tracker_backup_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.json"
                 val file = File(getExternalFilesDir(null), fileName)
-                file.writeText(json.toString(2))
+                file.writeText(jsonString)
 
                 val uri = FileProvider.getUriForFile(this@SettingsActivity, "$packageName.fileprovider", file)
 
@@ -352,34 +381,204 @@ class SettingsActivity : AppCompatActivity() {
             try {
                 val jsonString = contentResolver.openInputStream(uri)?.bufferedReader()?.readText()
                     ?: throw Exception("Could not read file")
-
-                val json = JSONObject(jsonString)
-                val dataArray = json.getJSONArray("data")
-
-                var importedCount = 0
-                withContext(Dispatchers.IO) {
-                    for (i in 0 until dataArray.length()) {
-                        val item = dataArray.getJSONObject(i)
-                        val usage = HeadphoneUsage(
-                            id = 0, // Auto-generate new ID
-                            date = item.getString("date"),
-                            packageName = item.getString("packageName"),
-                            appName = item.getString("appName"),
-                            duration = item.getLong("duration"),
-                            startTime = item.getLong("startTime"),
-                            endTime = item.getLong("endTime")
-                        )
-                        headphoneUsageDao.insertUsage(usage)
-                        importedCount++
-                    }
-                }
-
+                val importedCount = restoreFromJson(jsonString, replaceExisting = false)
                 Toast.makeText(this@SettingsActivity, "Restored $importedCount records", Toast.LENGTH_SHORT).show()
                 loadStorageInfo()
             } catch (e: Exception) {
                 Toast.makeText(this@SettingsActivity, "Restore failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun handleDriveConnectClick() {
+        if (isDriveSignedIn()) {
+            MaterialAlertDialogBuilder(this, R.style.AlertDialogTheme)
+                .setTitle("Disconnect Google Drive?")
+                .setMessage("You can reconnect later to sync your backups.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Disconnect") { _, _ ->
+                    driveSyncManager.signOut().addOnCompleteListener {
+                        settingsRepository.setDriveSyncEnabled(false)
+                        settingsRepository.setDriveAccountEmail("")
+                        DriveSyncScheduler.cancel(this)
+                        updateDriveStatus()
+                        Toast.makeText(this, "Google Drive disconnected", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .show()
+        } else {
+            startDriveSignIn(null)
+        }
+    }
+
+    private fun handleDriveBackupClick() {
+        if (!isDriveSignedIn()) {
+            startDriveSignIn(DriveAction.BACKUP)
+            return
+        }
+        backupToDrive()
+    }
+
+    private fun handleDriveRestoreClick() {
+        if (!isDriveSignedIn()) {
+            startDriveSignIn(DriveAction.RESTORE)
+            return
+        }
+        restoreFromDrive()
+    }
+
+    private fun startDriveSignIn(action: DriveAction?) {
+        pendingDriveAction = action
+        driveSignInLauncher.launch(driveSyncManager.getSignInClient().signInIntent)
+    }
+
+    private fun isDriveSignedIn(): Boolean = driveSyncManager.getSignedInAccount() != null
+
+    private fun updateDriveStatus() {
+        val account = driveSyncManager.getSignedInAccount()
+        val lastSyncTime = settingsRepository.getDriveLastSyncTime()
+        val lastError = settingsRepository.getDriveLastError()
+
+        if (account != null) {
+            settingsRepository.setDriveSyncEnabled(true)
+            settingsRepository.setDriveAccountEmail(account.email ?: "")
+            val email = account.email ?: "Google account"
+            binding.tvDriveStatus.text = "Connected as $email"
+            DriveSyncScheduler.schedule(this, settingsRepository.getDriveSyncIntervalMinutes())
+        } else {
+            binding.tvDriveStatus.text = "Not connected"
+            DriveSyncScheduler.cancel(this)
+        }
+
+        binding.tvDriveLastSync.text = if (lastSyncTime > 0) {
+            val formatter = SimpleDateFormat("MMM d, h:mm a", Locale.getDefault())
+            "Last sync: ${formatter.format(Date(lastSyncTime))}"
+        } else {
+            "Last sync: never"
+        }
+
+        binding.tvDriveError.text = if (lastError.isNotBlank()) {
+            "Last error: $lastError"
+        } else {
+            "Last error: none"
+        }
+
+        val intervalMinutes = settingsRepository.getDriveSyncIntervalMinutes()
+        binding.tvDriveInterval.text = "Every $intervalMinutes minutes"
+    }
+
+    private fun backupToDrive() {
+        lifecycleScope.launch {
+            try {
+                val jsonString = buildBackupJsonString() ?: run {
+                    Toast.makeText(this@SettingsActivity, "No data to backup", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                driveSyncManager.uploadBackup(jsonString)
+                settingsRepository.setDriveLastSyncTime(System.currentTimeMillis())
+                settingsRepository.setDriveLastError("")
+                Toast.makeText(this@SettingsActivity, "Backup saved to Google Drive", Toast.LENGTH_SHORT).show()
+                updateDriveStatus()
+            } catch (e: Exception) {
+                settingsRepository.setDriveLastError(e.message ?: "Unknown error")
+                Toast.makeText(this@SettingsActivity, "Drive backup failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                updateDriveStatus()
+            }
+        }
+    }
+
+    private fun restoreFromDrive() {
+        MaterialAlertDialogBuilder(this, R.style.AlertDialogTheme)
+            .setTitle("Restore from Google Drive?")
+            .setMessage("This will replace your local data with the Drive backup.")
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Restore") { _, _ ->
+                lifecycleScope.launch {
+                    try {
+                        val jsonString = driveSyncManager.downloadBackup()
+                            ?: run {
+                                Toast.makeText(this@SettingsActivity, "No Drive backup found", Toast.LENGTH_SHORT).show()
+                                return@launch
+                            }
+                        val importedCount = restoreFromJson(jsonString, replaceExisting = true)
+                        Toast.makeText(this@SettingsActivity, "Restored $importedCount records", Toast.LENGTH_SHORT).show()
+                        settingsRepository.setDriveLastSyncTime(System.currentTimeMillis())
+                        settingsRepository.setDriveLastError("")
+                        updateDriveStatus()
+                        loadStorageInfo()
+                    } catch (e: Exception) {
+                        settingsRepository.setDriveLastError(e.message ?: "Unknown error")
+                        Toast.makeText(this@SettingsActivity, "Drive restore failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                        updateDriveStatus()
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun handleDriveSyncNowClick() {
+        if (!isDriveSignedIn()) {
+            startDriveSignIn(DriveAction.BACKUP)
+            return
+        }
+        DriveSyncScheduler.runNow(this)
+        Toast.makeText(this, "Sync queued", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showDriveIntervalPicker() {
+        val options = arrayOf("15 minutes", "30 minutes", "1 hour", "3 hours", "6 hours")
+        val values = intArrayOf(15, 30, 60, 180, 360)
+        val current = settingsRepository.getDriveSyncIntervalMinutes()
+        val currentIndex = values.indexOf(current).coerceAtLeast(0)
+
+        MaterialAlertDialogBuilder(this, R.style.AlertDialogTheme)
+            .setTitle("Sync interval")
+            .setSingleChoiceItems(options, currentIndex) { dialog, which ->
+                val selected = values[which]
+                settingsRepository.setDriveSyncIntervalMinutes(selected)
+                if (settingsRepository.isDriveSyncEnabled()) {
+                    DriveSyncScheduler.schedule(this, selected)
+                }
+                updateDriveStatus()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private suspend fun buildBackupJsonString(): String? {
+        val allData = withContext(Dispatchers.IO) {
+            headphoneUsageDao.getAllUsage()
+        }
+
+        if (allData.isEmpty()) {
+            return null
+        }
+
+        return BackupJsonUtils.createBackupJson(allData).toString(2)
+    }
+
+    private suspend fun restoreFromJson(jsonString: String, replaceExisting: Boolean): Int {
+        val usageList = BackupJsonUtils.parseBackupJson(jsonString)
+        var importedCount = 0
+
+        withContext(Dispatchers.IO) {
+            if (replaceExisting) {
+                headphoneUsageDao.deleteAllUsage()
+            }
+
+            usageList.forEach { usage ->
+                headphoneUsageDao.insertUsage(usage)
+                importedCount++
+            }
+        }
+
+        return importedCount
+    }
+
+    private enum class DriveAction {
+        BACKUP,
+        RESTORE
     }
 
     private fun exportAllData() {

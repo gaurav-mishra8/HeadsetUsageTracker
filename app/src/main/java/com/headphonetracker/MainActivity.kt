@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
@@ -29,10 +30,12 @@ import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.headphonetracker.data.AppUsageSummary
+import com.headphonetracker.data.BackupJsonUtils
 import com.headphonetracker.data.DailyUsageSummary
 import com.headphonetracker.data.HeadphoneUsageDao
 import com.headphonetracker.data.SettingsRepository
 import com.headphonetracker.databinding.ActivityMainBinding
+import com.headphonetracker.sync.DriveSyncManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -55,6 +58,7 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
+    private val driveSyncManager by lazy { DriveSyncManager(this) }
     private lateinit var adapter: AppUsageAdapter
     private var isTracking = false
     private var refreshJob: Job? = null
@@ -108,6 +112,7 @@ class MainActivity : AppCompatActivity() {
         setupBottomNavigation()
         setupPullToRefresh()
         checkPermissions()
+    maybePromptDriveRestore()
 
         // Initial animations
         animateCardsOnLoad()
@@ -123,6 +128,71 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     stopAutoRefresh()
                 }
+            }
+        }
+    }
+
+    private fun maybePromptDriveRestore() {
+        if (settingsRepository.isDriveRestorePrompted()) {
+            return
+        }
+
+        val account = driveSyncManager.getSignedInAccount() ?: return
+
+        lifecycleScope.launch {
+            val hasLocalData = withContext(Dispatchers.IO) {
+                headphoneUsageDao.getAllUsage().isNotEmpty()
+            }
+
+            if (hasLocalData) {
+                settingsRepository.setDriveRestorePrompted(true)
+                return@launch
+            }
+
+            val hasBackup = try {
+                driveSyncManager.hasBackup()
+            } catch (e: Exception) {
+                return@launch
+            }
+
+            if (!hasBackup) {
+                return@launch
+            }
+
+            settingsRepository.setDriveRestorePrompted(true)
+
+            MaterialAlertDialogBuilder(this@MainActivity, R.style.AlertDialogTheme)
+                .setTitle("Restore from Google Drive?")
+                .setMessage("We found a Drive backup for your account (${account.email}). Restore it now?")
+                .setNegativeButton("Not now", null)
+                .setPositiveButton("Restore") { _, _ ->
+                    restoreDriveBackup()
+                }
+                .show()
+        }
+    }
+
+    private fun restoreDriveBackup() {
+        lifecycleScope.launch {
+            try {
+                val jsonString = driveSyncManager.downloadBackup()
+                    ?: run {
+                        Toast.makeText(this@MainActivity, "No Drive backup found", Toast.LENGTH_SHORT).show()
+                        return@launch
+                    }
+                val usageList = BackupJsonUtils.parseBackupJson(jsonString)
+
+                withContext(Dispatchers.IO) {
+                    headphoneUsageDao.deleteAllUsage()
+                    usageList.forEach { usage ->
+                        headphoneUsageDao.insertUsage(usage)
+                    }
+                }
+
+                Toast.makeText(this@MainActivity, "Restored ${usageList.size} records", Toast.LENGTH_SHORT).show()
+                loadData()
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, "Drive restore failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
