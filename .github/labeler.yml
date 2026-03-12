@@ -1,0 +1,35 @@
+android:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/src/main/**'
+      - 'app/build.gradle.kts'
+
+ui:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/src/main/res/layout/**'
+      - 'app/src/main/res/drawable/**'
+      - 'app/src/main/res/values/**'
+
+tests:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/src/test/**'
+      - 'app/src/androidTest/**'
+
+ci:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/**'
+
+gradle:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '*.gradle.kts'
+      - 'app/*.gradle.kts'
+      - 'gradle/**'
+
+documentation:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.md'

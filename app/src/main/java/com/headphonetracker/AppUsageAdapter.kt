@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.headphonetracker.data.AppUsageSummary
 import com.headphonetracker.databinding.ItemAppUsageBinding
 import kotlinx.coroutines.CoroutineScope
+import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -51,7 +52,7 @@ class AppUsageAdapter(
         holder.binding.tvUsageTime.text = formatDuration(usage.totalDuration)
 
         val percentage = if (totalDuration > 0) {
-            (usage.totalDuration * 100 / totalDuration).toInt()
+            (usage.totalDuration * 100f / totalDuration).roundToInt()
         } else {
             0
         }

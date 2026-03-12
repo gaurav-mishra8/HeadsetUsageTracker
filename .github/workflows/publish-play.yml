@@ -18,9 +18,13 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Decode keystore
         env:
@@ -30,7 +34,6 @@ jobs:
             echo "No KEYSTORE_BASE64 secret found. Aborting." >&2
             exit 1
           fi
-          echo "Decoding keystore to release-keystore.jks"
           echo "${KEYSTORE_BASE64}" | base64 --decode > release-keystore.jks
 
       - name: Build signed Release APK
@@ -50,6 +53,6 @@ jobs:
           releaseFiles: app/build/outputs/apk/release/app-release.apk
           track: internal
 
-      - name: Cleanup
-        run: |
-          shred -u release-keystore.jks || rm -f release-keystore.jks || true
+      - name: Cleanup keystore
+        if: always()
+        run: shred -u release-keystore.jks 2>/dev/null || rm -f release-keystore.jks

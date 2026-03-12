@@ -8,16 +8,15 @@ jobs:
   auto-merge:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'auto-merge')
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Enable auto-merge
-        uses: actions/github-script@v7
+        uses: peter-evans/enable-pull-request-automerge@v3
         with:
-          script: |
-            github.rest.pulls.enableAutoMerge({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number,
-              merge_method: 'squash'
-            })
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merge-method: squash
 
 

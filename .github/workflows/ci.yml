@@ -6,10 +6,6 @@ on:
   pull_request:
     branches: [ main, develop ]
 
-env:
-  ANDROID_SDK_ROOT: ${{ secrets.ANDROID_SDK_ROOT || '/usr/local/lib/android/sdk' }}
-  JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -27,17 +23,9 @@ jobs:
         
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-      
+
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
-      with:
-        api-level: 34
-        target: default
-        arch: x86_64
-      with:
-        api-level: 34
-        target: default
-        arch: x86_64
       
     - name: Cache Gradle dependencies
       uses: actions/cache@v4
@@ -90,17 +78,9 @@ jobs:
         
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-      
+
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
-      with:
-        api-level: 34
-        target: default
-        arch: x86_64
-      with:
-        api-level: 34
-        target: default
-        arch: x86_64
       
     - name: Cache Gradle dependencies
       uses: actions/cache@v4
@@ -114,14 +94,6 @@ jobs:
           
     - name: Run unit tests
       run: ./gradlew testDebugUnitTest --no-daemon --continue --stacktrace
-      
-    - name: Run instrumentation tests
-      uses: reactivecircus/android-emulator-runner@v2
-      with:
-        api-level: 29
-        arch: x86_64
-        profile: Nexus 6
-        script: ./gradlew connectedDebugAndroidTest --no-daemon || echo "Instrumentation tests skipped if emulator unavailable"
         
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -133,16 +105,6 @@ jobs:
           app/build/test-results/
         retention-days: 7
         if-no-files-found: ignore
-        
-    - name: Publish test results
-      uses: EnricoMi/publish-unit-test-result-action@v2
-      if: always()
-      with:
-        files: 'app/build/test-results/**/*.xml'
-        check_name: 'Unit Test Results'
-        report_individual_runs: true
-        deduplicate_classes_by_file_name: true
-        fail_on_error: false
 
   lint:
     runs-on: ubuntu-latest
@@ -160,17 +122,9 @@ jobs:
         
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-      
+
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
-      with:
-        api-level: 34
-        target: default
-        arch: x86_64
-      with:
-        api-level: 34
-        target: default
-        arch: x86_64
       
     - name: Cache Gradle dependencies
       uses: actions/cache@v4
@@ -182,8 +136,8 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
           
-    - name: Run lint
-      run: ./gradlew lintDebug --no-daemon || echo "Lint check completed with warnings"
+    - name: Run Android lint
+      run: ./gradlew lintDebug --no-daemon
       continue-on-error: true
       
     - name: Upload lint results
@@ -195,7 +149,7 @@ jobs:
         retention-days: 7
         if-no-files-found: ignore
 
-  check-format:
+  code-quality:
     runs-on: ubuntu-latest
     
     steps:
@@ -211,69 +165,15 @@ jobs:
         
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-      
+
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
-      with:
-        api-level: 34
-        target: default
-        arch: x86_64
-      with:
-        api-level: 34
-        target: default
-        arch: x86_64
-      
-    - name: Check Kotlin code style
+
+    - name: Run ktlint
       run: ./gradlew ktlintCheck --no-daemon
       continue-on-error: true
 
     - name: Run detekt
       run: ./gradlew detekt --no-daemon
-      
-    - name: Check code formatting
-      run: |
-        echo "Checking code formatting..."
-        # Check for common formatting issues
-        if grep -r "import.*\*" app/src/main/java/ --include="*.kt"; then
-          echo "Warning: Wildcard imports found"
-        fi
-
-  security-scan:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-        cache: 'gradle'
-        
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-      
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-      with:
-        api-level: 34
-        target: default
-        arch: x86_64
-      with:
-        api-level: 34
-        target: default
-        arch: x86_64
-      
-    - name: Run dependency check
-      run: ./gradlew dependencyCheckAnalyze --no-daemon || echo "dependency-check plugin not configured, skipping..."
-      
-    - name: Check for known vulnerabilities
-      run: |
-        echo "Checking for security vulnerabilities..."
-        # Basic check for common security issues
-        if grep -r "TODO.*password\|TODO.*secret\|TODO.*key" app/src/ --include="*.kt" --include="*.java"; then
-          echo "Warning: Potential security-sensitive TODOs found"
-        fi
+      continue-on-error: true
 

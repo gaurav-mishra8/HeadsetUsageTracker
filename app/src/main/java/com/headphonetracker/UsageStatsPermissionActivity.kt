@@ -5,7 +5,6 @@ import android.animation.ObjectAnimator
 import android.app.AppOpsManager
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
@@ -37,12 +36,7 @@ class UsageStatsPermissionActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (hasUsageStatsPermission()) {
-            startActivity(Intent(this, MainActivity::class.java))
             finish()
-            @Suppress("DEPRECATION")
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-            }
         }
     }
 

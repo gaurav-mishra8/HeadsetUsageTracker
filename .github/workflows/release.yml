@@ -8,6 +8,8 @@ on:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
     - name: Checkout code
@@ -25,10 +27,6 @@ jobs:
       
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
-      with:
-        api-level: 34
-        target: default
-        arch: x86_64
       
     - name: Cache Gradle dependencies
       uses: actions/cache@v4
@@ -42,25 +40,17 @@ jobs:
           
     - name: Build Release APK
       run: ./gradlew assembleRelease --no-daemon
-      
-    - name: Sign APK (if keystore available)
-      if: env.KEYSTORE_BASE64 != ''
-      env:
-        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-      run: |
-        echo "Signing APK..."
-        # APK signing logic would go here
-        echo "APK signing completed"
+
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug --no-daemon
         
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
-        files: app/build/outputs/apk/release/app-release.apk
+        files: |
+          app/build/outputs/apk/release/app-release.apk
+          app/build/outputs/apk/debug/app-debug.apk
         draft: false
         prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        generate_release_notes: true
 
