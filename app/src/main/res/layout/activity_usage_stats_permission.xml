@@ -4,7 +4,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="24dp"
-    android:gravity="center">
+    android:gravity="center"
+    android:background="@color/background_dark">
 
     <TextView
         android:layout_width="wrap_content"
@@ -12,7 +13,7 @@
         android:text="@string/grant_permission"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="@color/black" />
+        android:textColor="@color/text_primary" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -20,7 +21,7 @@
         android:layout_marginTop="16dp"
         android:text="@string/permission_required"
         android:textSize="16sp"
-        android:textColor="@android:color/darker_gray"
+        android:textColor="@color/text_secondary"
         android:gravity="center" />
 
     <com.google.android.material.button.MaterialButton

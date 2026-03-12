@@ -35,4 +35,27 @@
     <style name="AlertDialogBodyStyle" parent="MaterialAlertDialog.Material3.Body.Text">
         <item name="android:textColor">#94A3B8</item>
     </style>
+
+    <!-- Material DatePicker Theme — Dark -->
+    <style name="MaterialDatePickerTheme" parent="ThemeOverlay.Material3.MaterialCalendar">
+        <!-- Header -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+
+        <!-- Calendar body -->
+        <item name="colorSurface">#1A2028</item>
+        <item name="colorSurfaceContainer">#1A2028</item>
+        <item name="colorSurfaceContainerHigh">#1A2028</item>
+        <item name="colorSurfaceContainerHighest">#1A2028</item>
+        <item name="android:colorBackground">#1A2028</item>
+        <item name="colorOnSurface">#F8FAFC</item>
+        <item name="colorOnSurfaceVariant">#94A3B8</item>
+
+        <!-- Selected day -->
+        <item name="colorSecondary">@color/primary</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+
+        <!-- Today indicator -->
+        <item name="colorOutline">@color/primary</item>
+    </style>
 </resources>

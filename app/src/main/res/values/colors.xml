@@ -59,10 +59,10 @@
     <color name="chart_8">#F472B6</color>
     
     <!-- Bottom Nav -->
-    <color name="nav_selected">#6366F1</color>
-    <color name="nav_unselected">#64748B</color>
+    <color name="nav_selected">#4F46E5</color>
+    <color name="nav_unselected">#94A3B8</color>
     <color name="nav_background">#FFFFFF</color>
-    <color name="nav_indicator">#E0E7FF</color>
+    <color name="nav_indicator">#E8E0FF</color>
     
     <!-- Divider & Border -->
     <color name="divider">#E2E8F0</color>

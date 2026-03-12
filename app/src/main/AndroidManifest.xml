@@ -39,17 +39,7 @@
             android:theme="@style/Theme.HeadphoneTracker" />
         
         <activity
-            android:name=".SettingsActivity"
-            android:exported="false"
-            android:theme="@style/Theme.HeadphoneTracker" />
-        
-        <activity
             android:name=".ExcludedAppsActivity"
-            android:exported="false"
-            android:theme="@style/Theme.HeadphoneTracker" />
-        
-        <activity
-            android:name=".StatsActivity"
             android:exported="false"
             android:theme="@style/Theme.HeadphoneTracker" />
         

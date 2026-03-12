@@ -2,11 +2,14 @@ package com.headphonetracker
 
 import android.os.Bundle
 import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
@@ -14,7 +17,7 @@ import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.headphonetracker.data.HeadphoneUsageDao
-import com.headphonetracker.databinding.ActivityStatsBinding
+import com.headphonetracker.databinding.FragmentStatsBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,9 +29,10 @@ import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class StatsActivity : AppCompatActivity() {
+class StatsFragment : Fragment() {
 
-    private lateinit var binding: ActivityStatsBinding
+    private var _binding: FragmentStatsBinding? = null
+    private val binding get() = _binding!!
 
     @Inject
     lateinit var headphoneUsageDao: HeadphoneUsageDao
@@ -67,20 +71,27 @@ class StatsActivity : AppCompatActivity() {
         "us.zoom.videomeetings"
     )
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityStatsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentStatsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        // DAO is injected by Hilt
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        loadStats()
+    }
 
-        binding.toolbar.setNavigationOnClickListener { finish() }
-
+    override fun onResume() {
+        super.onResume()
         loadStats()
     }
 
     private fun loadStats() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             loadStreaks()
             loadWeekComparison()
             loadHourlyChart()
@@ -104,7 +115,6 @@ class StatsActivity : AppCompatActivity() {
         }
 
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val today = dateFormat.format(Date())
 
         // Calculate current streak
         var currentStreak = 0
@@ -116,7 +126,6 @@ class StatsActivity : AppCompatActivity() {
                 currentStreak++
                 checkDate.add(Calendar.DAY_OF_YEAR, -1)
             } else if (i == 0) {
-                // Today might not have data yet, check yesterday
                 checkDate.add(Calendar.DAY_OF_YEAR, -1)
             } else {
                 break
@@ -154,12 +163,10 @@ class StatsActivity : AppCompatActivity() {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val calendar = Calendar.getInstance()
 
-        // This week
         val thisWeekEnd = dateFormat.format(calendar.time)
         calendar.add(Calendar.DAY_OF_YEAR, -6)
         val thisWeekStart = dateFormat.format(calendar.time)
 
-        // Last week
         calendar.add(Calendar.DAY_OF_YEAR, -1)
         val lastWeekEnd = dateFormat.format(calendar.time)
         calendar.add(Calendar.DAY_OF_YEAR, -6)
@@ -186,9 +193,9 @@ class StatsActivity : AppCompatActivity() {
         binding.tvWeekChange.text = "${if (changePercent >= 0) "+" else ""}$changePercent%"
         binding.tvWeekChange.setTextColor(
             if (changePercent >= 0) {
-                ContextCompat.getColor(this, R.color.success)
+                ContextCompat.getColor(requireContext(), R.color.success)
             } else {
-                ContextCompat.getColor(this, R.color.error)
+                ContextCompat.getColor(requireContext(), R.color.error)
             }
         )
     }
@@ -198,7 +205,6 @@ class StatsActivity : AppCompatActivity() {
             headphoneUsageDao.getAllUsage()
         }
 
-        // Group by hour
         val hourlyUsage = LongArray(24) { 0L }
         allUsage.forEach { usage ->
             val hour = Calendar.getInstance().apply {
@@ -208,11 +214,11 @@ class StatsActivity : AppCompatActivity() {
         }
 
         val entries = hourlyUsage.mapIndexed { index, duration ->
-            BarEntry(index.toFloat(), (duration / 60f)) // Convert to minutes
+            BarEntry(index.toFloat(), (duration / 60f))
         }
 
         val dataSet = BarDataSet(entries, "").apply {
-            color = ContextCompat.getColor(this@StatsActivity, R.color.primary)
+            color = ContextCompat.getColor(requireContext(), R.color.primary)
             setDrawValues(false)
         }
 
@@ -225,7 +231,7 @@ class StatsActivity : AppCompatActivity() {
             xAxis.apply {
                 position = XAxis.XAxisPosition.BOTTOM
                 setDrawGridLines(false)
-                textColor = ContextCompat.getColor(this@StatsActivity, R.color.text_tertiary)
+                textColor = ContextCompat.getColor(requireContext(), R.color.text_tertiary)
                 textSize = 10f
                 labelCount = 6
                 valueFormatter = object : ValueFormatter() {
@@ -243,8 +249,8 @@ class StatsActivity : AppCompatActivity() {
 
             axisLeft.apply {
                 setDrawGridLines(true)
-                gridColor = ContextCompat.getColor(this@StatsActivity, R.color.divider)
-                textColor = ContextCompat.getColor(this@StatsActivity, R.color.text_tertiary)
+                gridColor = ContextCompat.getColor(requireContext(), R.color.divider)
+                textColor = ContextCompat.getColor(requireContext(), R.color.text_tertiary)
                 textSize = 10f
                 axisMinimum = 0f
                 valueFormatter = object : ValueFormatter() {
@@ -259,7 +265,6 @@ class StatsActivity : AppCompatActivity() {
             invalidate()
         }
 
-        // Find peak hour
         val peakHour = hourlyUsage.indices.maxByOrNull { hourlyUsage[it] } ?: 0
         val peakHourStr = when {
             peakHour == 0 -> "12 AM - 1 AM"
@@ -315,47 +320,48 @@ class StatsActivity : AppCompatActivity() {
 
         sortedCategories.filter { it.value > 0 }.forEach { (category, duration) ->
             val percentage = (duration * 100 / totalDuration).toInt()
+            val ctx = requireContext()
 
-            val itemView = LinearLayout(this).apply {
+            val itemView = LinearLayout(ctx).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(0, 8.dpToPx(), 0, 8.dpToPx())
             }
 
-            val labelLayout = LinearLayout(this).apply {
+            val labelLayout = LinearLayout(ctx).apply {
                 orientation = LinearLayout.VERTICAL
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             }
 
-            val categoryLabel = TextView(this).apply {
+            val categoryLabel = TextView(ctx).apply {
                 text = category
-                setTextColor(ContextCompat.getColor(this@StatsActivity, R.color.text_primary))
+                setTextColor(ContextCompat.getColor(ctx, R.color.text_primary))
                 textSize = 14f
             }
 
-            val durationLabel = TextView(this).apply {
+            val durationLabel = TextView(ctx).apply {
                 text = formatDurationShort(duration)
-                setTextColor(ContextCompat.getColor(this@StatsActivity, R.color.text_tertiary))
+                setTextColor(ContextCompat.getColor(ctx, R.color.text_tertiary))
                 textSize = 12f
             }
 
             labelLayout.addView(categoryLabel)
             labelLayout.addView(durationLabel)
 
-            val progressBar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
+            val progressBar = ProgressBar(ctx, null, android.R.attr.progressBarStyleHorizontal).apply {
                 layoutParams = LinearLayout.LayoutParams(0, 8.dpToPx(), 2f).apply {
                     marginStart = 16.dpToPx()
                     marginEnd = 8.dpToPx()
                 }
                 max = 100
                 progress = percentage
-                progressDrawable = ContextCompat.getDrawable(this@StatsActivity, R.drawable.progress_bar_category)
-                progressTintList = ContextCompat.getColorStateList(this@StatsActivity, colors[category] ?: R.color.primary)
+                progressDrawable = ContextCompat.getDrawable(ctx, R.drawable.progress_bar_category)
+                progressTintList = ContextCompat.getColorStateList(ctx, colors[category] ?: R.color.primary)
             }
 
-            val percentLabel = TextView(this).apply {
+            val percentLabel = TextView(ctx).apply {
                 text = "$percentage%"
-                setTextColor(ContextCompat.getColor(this@StatsActivity, R.color.text_secondary))
+                setTextColor(ContextCompat.getColor(ctx, R.color.text_secondary))
                 textSize = 14f
                 minWidth = 48.dpToPx()
                 gravity = Gravity.END
@@ -404,4 +410,9 @@ class StatsActivity : AppCompatActivity() {
     }
 
     private fun Int.dpToPx(): Int = (this * resources.displayMetrics.density).toInt()
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

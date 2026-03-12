@@ -72,14 +72,6 @@ class OnboardingActivity : AppCompatActivity() {
             )
         ),
         OnboardingPage(
-            iconRes = R.drawable.ic_milestone,
-            title = "Fun Facts About Headphones",
-            subtitle = "Did you know?",
-            content = "",
-            trivia = "The first headphones were invented in 1910 by Nathaniel Baldwin in his kitchen! " +
-                "They weighed over 5 pounds and were used by the US Navy."
-        ),
-        OnboardingPage(
             iconRes = R.drawable.ic_headphones,
             title = "Hearing Science",
             subtitle = "Did you know?",
@@ -87,15 +79,6 @@ class OnboardingActivity : AppCompatActivity() {
             trivia = "The human ear can detect sounds from 20 Hz to 20,000 Hz. Most headphones can reproduce " +
                 "this full range, but prolonged exposure above 85 dB can cause permanent damage. " +
                 "Your ears need rest to recover!"
-        ),
-        OnboardingPage(
-            iconRes = R.drawable.ic_headphones,
-            title = "Headphone Evolution",
-            subtitle = "Fun history",
-            content = "",
-            trivia = "Wireless headphones became popular in the 2000s, but the first Bluetooth headphones " +
-                "were released in 2004. Today, over 70% of headphone sales are wireless! " +
-                "Noise-cancelling technology was first developed for pilots in the 1950s."
         ),
         OnboardingPage(
             iconRes = R.drawable.ic_headphones,

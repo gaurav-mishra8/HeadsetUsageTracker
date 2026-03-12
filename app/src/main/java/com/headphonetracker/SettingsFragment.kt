@@ -5,18 +5,22 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.ContextThemeWrapper
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.FileProvider
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.headphonetracker.data.BackupJsonUtils
 import com.headphonetracker.data.HeadphoneUsageDao
-import com.headphonetracker.databinding.ActivitySettingsBinding
+import com.headphonetracker.data.SettingsRepository
+import com.headphonetracker.databinding.FragmentSettingsBinding
 import com.headphonetracker.sync.DriveSyncManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -29,23 +33,24 @@ import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class SettingsActivity : AppCompatActivity() {
+class SettingsFragment : Fragment() {
 
-    private lateinit var binding: ActivitySettingsBinding
+    private var _binding: FragmentSettingsBinding? = null
+    private val binding get() = _binding!!
 
     @Inject
     lateinit var headphoneUsageDao: HeadphoneUsageDao
 
     @Inject
-    lateinit var settingsRepository: com.headphonetracker.data.SettingsRepository
+    lateinit var settingsRepository: SettingsRepository
 
-    private val driveSyncManager by lazy { DriveSyncManager(this) }
+    private val driveSyncManager by lazy { DriveSyncManager(requireActivity()) }
     private var pendingDriveAction: DriveAction? = null
 
     private val driveSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode != Activity.RESULT_OK) {
             pendingDriveAction = null
-            Toast.makeText(this, "Google Drive sign-in cancelled", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Google Drive sign-in cancelled", Toast.LENGTH_SHORT).show()
             return@registerForActivityResult
         }
 
@@ -54,26 +59,30 @@ class SettingsActivity : AppCompatActivity() {
             val account = task.getResult(ApiException::class.java)
             settingsRepository.setDriveSyncEnabled(true)
             settingsRepository.setDriveAccountEmail(account.email ?: "")
-            Toast.makeText(this, "Google Drive connected", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Google Drive connected", Toast.LENGTH_SHORT).show()
 
             if (pendingDriveAction == DriveAction.BACKUP) {
                 backupToDrive()
             }
         } catch (e: ApiException) {
-            Toast.makeText(this, "Drive sign-in failed: ${e.statusCode}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Drive sign-in failed: ${e.statusCode}", Toast.LENGTH_SHORT).show()
         } finally {
             pendingDriveAction = null
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivitySettingsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentSettingsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        // DAO is injected by Hilt
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        setupToolbar()
         setupHealthSettings()
         setupNotificationSettings()
         setupAppearanceSettings()
@@ -84,21 +93,15 @@ class SettingsActivity : AppCompatActivity() {
         loadVersion()
     }
 
-    private fun setupToolbar() {
-        binding.toolbar.setNavigationOnClickListener { finish() }
-    }
-
     // ==================== HEALTH SETTINGS ====================
 
     private fun setupHealthSettings() {
-        // Daily Limit
         updateDailyLimitDisplay()
         binding.cardDailyLimit.setOnClickListener {
             HapticUtils.performClickFeedback(it)
             showDailyLimitPicker()
         }
 
-        // Break Reminders
         binding.switchBreakReminders.isChecked = settingsRepository.isBreakRemindersEnabled()
         binding.switchBreakReminders.setOnCheckedChangeListener { view, isChecked ->
             HapticUtils.performSelectionFeedback(view)
@@ -107,7 +110,6 @@ class SettingsActivity : AppCompatActivity() {
             binding.cardBreakInterval.isEnabled = isChecked
         }
 
-        // Break Interval
         updateBreakIntervalDisplay()
         binding.cardBreakInterval.alpha = if (binding.switchBreakReminders.isChecked) 1f else 0.5f
         binding.cardBreakInterval.isEnabled = binding.switchBreakReminders.isChecked
@@ -170,18 +172,15 @@ class SettingsActivity : AppCompatActivity() {
     // ==================== NOTIFICATION SETTINGS ====================
 
     private fun setupNotificationSettings() {
-        // Daily Summary
         binding.switchDailySummary.isChecked = settingsRepository.isDailySummaryEnabled()
         binding.switchDailySummary.setOnCheckedChangeListener { view, isChecked ->
             HapticUtils.performSelectionFeedback(view)
             settingsRepository.setDailySummaryEnabled(isChecked)
             if (isChecked) {
-                scheduleDailySummary()
-                Toast.makeText(this, "Daily summary enabled at 9 PM", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Daily summary enabled at 9 PM", Toast.LENGTH_SHORT).show()
             }
         }
 
-        // Milestone Alerts
         binding.switchMilestones.isChecked = settingsRepository.isMilestonesEnabled()
         binding.switchMilestones.setOnCheckedChangeListener { view, isChecked ->
             HapticUtils.performSelectionFeedback(view)
@@ -189,21 +188,15 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun scheduleDailySummary() {
-        // Would schedule using WorkManager in production
-    }
-
     // ==================== APPEARANCE SETTINGS ====================
 
     private fun setupAppearanceSettings() {
-        // Theme
         updateThemeDisplay()
         binding.cardTheme.setOnClickListener {
             HapticUtils.performClickFeedback(it)
             showThemePicker()
         }
 
-        // Accent Color
         binding.cardAccentColor.setOnClickListener {
             HapticUtils.performClickFeedback(it)
             showColorPicker()
@@ -231,7 +224,7 @@ class SettingsActivity : AppCompatActivity() {
                 settingsRepository.setAppTheme(values[which])
                 updateThemeDisplay()
                 applyTheme(values[which])
-                recreate()
+                requireActivity().recreate()
                 dialog.dismiss()
             }
             .setNegativeButton("Cancel", null)
@@ -251,7 +244,7 @@ class SettingsActivity : AppCompatActivity() {
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
                 Configuration.UI_MODE_NIGHT_YES
         val dialogStyle = if (isNight) R.style.AlertDialogTheme_Dark else R.style.AlertDialogTheme_Light
-        return ContextThemeWrapper(this, dialogStyle)
+        return ContextThemeWrapper(requireContext(), dialogStyle)
     }
 
     private fun showColorPicker() {
@@ -264,7 +257,7 @@ class SettingsActivity : AppCompatActivity() {
             .setTitle("Accent color")
             .setSingleChoiceItems(colors, currentIndex) { dialog, which ->
                 settingsRepository.setAccentColor(colorValues[which])
-                Toast.makeText(this, "Restart app to apply color", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Restart app to apply color", Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
             }
             .setNegativeButton("Cancel", null)
@@ -274,21 +267,19 @@ class SettingsActivity : AppCompatActivity() {
     // ==================== TRACKING SETTINGS ====================
 
     private fun setupTrackingSettings() {
-        // Auto-start
         binding.switchAutoStart.isChecked = settingsRepository.isAutoStartEnabled()
         binding.switchAutoStart.setOnCheckedChangeListener { view, isChecked ->
             HapticUtils.performSelectionFeedback(view)
             settingsRepository.setAutoStartEnabled(isChecked)
             if (isChecked) {
-                Toast.makeText(this, "Tracking will start on device boot", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Tracking will start on device boot", Toast.LENGTH_SHORT).show()
             }
         }
 
-        // Excluded Apps
         updateExcludedAppsCount()
         binding.cardExcludedApps.setOnClickListener {
             HapticUtils.performClickFeedback(it)
-            startActivity(Intent(this, ExcludedAppsActivity::class.java))
+            startActivity(Intent(requireContext(), ExcludedAppsActivity::class.java))
         }
     }
 
@@ -323,7 +314,6 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-
     private fun handleDriveBackupClick() {
         if (!isDriveSignedIn()) {
             startDriveSignIn(DriveAction.BACKUP)
@@ -332,7 +322,6 @@ class SettingsActivity : AppCompatActivity() {
         backupToDrive()
     }
 
-
     private fun startDriveSignIn(action: DriveAction?) {
         pendingDriveAction = action
         driveSignInLauncher.launch(driveSyncManager.getSignInClient().signInIntent)
@@ -340,21 +329,20 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun isDriveSignedIn(): Boolean = driveSyncManager.getSignedInAccount() != null
 
-
     private fun backupToDrive() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val jsonString = buildBackupJsonString() ?: run {
-                    Toast.makeText(this@SettingsActivity, "No data to backup", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "No data to backup", Toast.LENGTH_SHORT).show()
                     return@launch
                 }
                 driveSyncManager.uploadBackup(jsonString)
                 settingsRepository.setDriveLastSyncTime(System.currentTimeMillis())
                 settingsRepository.setDriveLastError("")
-                Toast.makeText(this@SettingsActivity, "Backup saved to Google Drive", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Backup saved to Google Drive", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 settingsRepository.setDriveLastError(e.message ?: "Unknown error")
-                Toast.makeText(this@SettingsActivity, "Drive backup failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Drive backup failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -376,14 +364,14 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun exportAllData() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val allData = withContext(Dispatchers.IO) {
                     headphoneUsageDao.getAllUsage()
                 }
 
                 if (allData.isEmpty()) {
-                    Toast.makeText(this@SettingsActivity, "No data to export", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "No data to export", Toast.LENGTH_SHORT).show()
                     return@launch
                 }
 
@@ -396,10 +384,10 @@ class SettingsActivity : AppCompatActivity() {
                 }
 
                 val fileName = "headphone_tracker_export_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.csv"
-                val file = File(getExternalFilesDir(null), fileName)
+                val file = File(requireContext().getExternalFilesDir(null), fileName)
                 file.writeText(csv)
 
-                val uri = FileProvider.getUriForFile(this@SettingsActivity, "$packageName.fileprovider", file)
+                val uri = FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.fileprovider", file)
 
                 val shareIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/csv"
@@ -410,7 +398,7 @@ class SettingsActivity : AppCompatActivity() {
 
                 startActivity(Intent.createChooser(shareIntent, "Export data"))
             } catch (e: Exception) {
-                Toast.makeText(this@SettingsActivity, "Export failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Export failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -425,17 +413,17 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun clearAllData() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 headphoneUsageDao.deleteAllUsage()
             }
-            Toast.makeText(this@SettingsActivity, "All data cleared", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "All data cleared", Toast.LENGTH_SHORT).show()
             loadStorageInfo()
         }
     }
 
     private fun loadStorageInfo() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val allData = withContext(Dispatchers.IO) {
                 headphoneUsageDao.getAllUsage()
             }
@@ -450,13 +438,13 @@ class SettingsActivity : AppCompatActivity() {
     private fun setupAboutSettings() {
         binding.cardViewOnboarding.setOnClickListener {
             HapticUtils.performClickFeedback(it)
-            startActivity(Intent(this, OnboardingActivity::class.java))
+            startActivity(Intent(requireContext(), OnboardingActivity::class.java))
         }
     }
 
     private fun loadVersion() {
         try {
-            val packageInfo = packageManager.getPackageInfo(packageName, 0)
+            val packageInfo = requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
             binding.tvVersion.text = "Version ${packageInfo.versionName}"
         } catch (e: Exception) {
             binding.tvVersion.text = "Version 1.0"
@@ -473,5 +461,10 @@ class SettingsActivity : AppCompatActivity() {
             minutes > 0 -> "${minutes}m ${secs}s"
             else -> "${secs}s"
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
