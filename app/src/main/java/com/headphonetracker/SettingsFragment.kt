@@ -281,45 +281,6 @@ class SettingsFragment : Fragment() {
             HapticUtils.performClickFeedback(it)
             startActivity(Intent(requireContext(), ExcludedAppsActivity::class.java))
         }
-
-        updateNotificationAccessStatus()
-        binding.cardNotificationAccess.setOnClickListener {
-            HapticUtils.performClickFeedback(it)
-            openNotificationAccessSettings()
-        }
-    }
-
-    private fun updateNotificationAccessStatus() {
-        val enabled = isNotificationListenerEnabled()
-        binding.tvNotificationAccessStatus.text = if (enabled) {
-            "Enabled — accurate app detection active"
-        } else {
-            "Tap to enable for accurate app detection"
-        }
-        binding.tvNotificationAccessStatus.setTextColor(
-            resources.getColor(
-                if (enabled) R.color.text_tertiary else R.color.warning,
-                requireContext().theme
-            )
-        )
-    }
-
-    private fun isNotificationListenerEnabled(): Boolean {
-        val componentName = android.content.ComponentName(
-            requireContext(), MediaNotificationListener::class.java
-        )
-        val flat = android.provider.Settings.Secure.getString(
-            requireContext().contentResolver, "enabled_notification_listeners"
-        )
-        return flat != null && flat.contains(componentName.flattenToString())
-    }
-
-    private fun openNotificationAccessSettings() {
-        try {
-            startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
-        } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Could not open settings", Toast.LENGTH_SHORT).show()
-        }
     }
 
     private fun updateExcludedAppsCount() {
@@ -334,7 +295,6 @@ class SettingsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         updateExcludedAppsCount()
-        updateNotificationAccessStatus()
     }
 
     // ==================== DATA SETTINGS ====================

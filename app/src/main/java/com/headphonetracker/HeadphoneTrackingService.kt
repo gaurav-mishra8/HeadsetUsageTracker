@@ -7,11 +7,9 @@ import android.app.PendingIntent
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
-import android.content.ComponentName
 import android.content.Intent
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
-import android.media.session.MediaSessionManager
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
@@ -365,8 +363,7 @@ class HeadphoneTrackingService : LifecycleService() {
      * Get the package name of the app currently playing audio.
      * Uses multiple strategies:
      * 1. AudioPlaybackConfiguration client UID (most accurate, but often returns -1)
-     * 2. MediaSessionManager active sessions (reliable on most devices)
-     * 3. Foreground app as last resort (only when audio IS confirmed playing)
+     * 2. UsageEvents + known media app list (reliable fallback)
      */
     @Suppress("DEPRECATION")
     private fun getAudioPlayingApp(): String? {
@@ -407,46 +404,11 @@ class HeadphoneTrackingService : LifecycleService() {
             }
         }
 
-        // Strategy 2: Try MediaSessionManager to find active media session
-        try {
-            val mediaSessionManager = getSystemService(Context.MEDIA_SESSION_SERVICE) as? MediaSessionManager
-            if (mediaSessionManager != null) {
-                try {
-                    // Use our NotificationListenerService component for permission
-                    val listenerComponent = ComponentName(this, MediaNotificationListener::class.java)
-                    val controllers = mediaSessionManager.getActiveSessions(listenerComponent)
-                    for (controller in controllers) {
-                        val state = controller.playbackState
-                        if (state != null && state.state == android.media.session.PlaybackState.STATE_PLAYING) {
-                            val pkg = controller.packageName
-                            if (pkg != packageName) {
-                                Log.d(TAG, "Strategy 2 (MediaSession): Audio from $pkg")
-                                return pkg
-                            }
-                        }
-                    }
-                    // Also check sessions that may not have STATE_PLAYING set but are active
-                    if (controllers.isNotEmpty()) {
-                        val firstNonSelf = controllers.firstOrNull { it.packageName != packageName }
-                        if (firstNonSelf != null) {
-                            val pkg = firstNonSelf.packageName
-                            Log.d(TAG, "Strategy 2 (MediaSession, first active): Audio from $pkg")
-                            return pkg
-                        }
-                    }
-                } catch (e: SecurityException) {
-                    Log.d(TAG, "MediaSession access denied (enable Notification Access in Settings)")
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "MediaSessionManager error: ${e.message}")
-        }
-
-        // Strategy 3: Use recent UsageEvents to find the last non-system app
+        // Strategy 2: Use recent UsageEvents to find the most likely media app
         // Audio is confirmed playing, so find the most likely media app
         val recentApp = getMostRecentMediaApp()
         if (recentApp != null) {
-            Log.d(TAG, "Strategy 3 (recent app+audio): Attributing to $recentApp")
+            Log.d(TAG, "Strategy 2 (recent app+audio): Attributing to $recentApp")
             return recentApp
         }
 
