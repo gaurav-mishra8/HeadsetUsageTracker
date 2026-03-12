@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.HeadphoneTracker" parent="Theme.Material3.Dark.NoActionBar">
+    <style name="Theme.HeadphoneTracker" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary colors -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryVariant">@color/primary_variant</item>
@@ -25,10 +25,10 @@
         <item name="colorOnSurface">@color/text_primary</item>
         <item name="colorOnSurfaceVariant">@color/text_secondary</item>
         
-        <!-- Status bar -->
-        <item name="android:statusBarColor">@android:color/transparent</item>
+    <!-- Status bar -->
+    <item name="android:statusBarColor">@color/background_dark</item>
         <item name="android:navigationBarColor">@color/nav_background</item>
-        <item name="android:windowLightStatusBar">false</item>
+    <item name="android:windowLightStatusBar">true</item>
         
         <!-- Text colors -->
         <item name="android:textColorPrimary">@color/text_primary</item>
@@ -156,23 +156,46 @@
         <item name="android:letterSpacing">-0.02</item>
     </style>
 
-    <!-- Alert Dialog Theme -->
+    <!-- Alert Dialog Theme — Light -->
     <style name="AlertDialogTheme" parent="ThemeOverlay.Material3.MaterialAlertDialog">
-        <item name="colorSurface">@color/surface_dark</item>
-        <item name="colorOnSurface">@color/text_primary</item>
-        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorError">@color/error</item>
+        <item name="colorSurface">#FFFFFF</item>
+        <item name="colorOnSurface">#0F172A</item>
+        <item name="colorOnSurfaceVariant">#475569</item>
+        <item name="colorPrimary">#6366F1</item>
+        <item name="colorError">#EF4444</item>
+        <item name="android:background">#FFFFFF</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/AlertDialogTitleStyle</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/AlertDialogBodyStyle</item>
+    </style>
+
+    <!-- Used as ContextThemeWrapper base — must be a full theme -->
+    <style name="AlertDialogTheme_Light" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorSurface">#FFFFFF</item>
+        <item name="colorOnSurface">#0F172A</item>
+        <item name="colorOnSurfaceVariant">#475569</item>
+        <item name="colorPrimary">#6366F1</item>
+        <item name="colorError">#EF4444</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/AlertDialogTitleStyle</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/AlertDialogBodyStyle</item>
+    </style>
+
+    <!-- Fallback dark dialog theme (overridden by values-night/themes.xml at runtime) -->
+    <style name="AlertDialogTheme_Dark" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorSurface">#1A2028</item>
+        <item name="colorOnSurface">#F8FAFC</item>
+        <item name="colorOnSurfaceVariant">#94A3B8</item>
+        <item name="colorPrimary">#818CF8</item>
+        <item name="colorError">#EF4444</item>
         <item name="materialAlertDialogTitleTextStyle">@style/AlertDialogTitleStyle</item>
         <item name="materialAlertDialogBodyTextStyle">@style/AlertDialogBodyStyle</item>
     </style>
 
     <style name="AlertDialogTitleStyle" parent="MaterialAlertDialog.Material3.Title.Text">
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">#0F172A</item>
     </style>
 
     <style name="AlertDialogBodyStyle" parent="MaterialAlertDialog.Material3.Body.Text">
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textColor">#475569</item>
     </style>
 
     <!-- Material DatePicker Theme -->

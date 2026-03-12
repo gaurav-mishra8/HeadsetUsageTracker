@@ -19,7 +19,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
@@ -137,7 +136,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val account = driveSyncManager.getSignedInAccount() ?: return
+        driveSyncManager.getSignedInAccount() ?: return
 
         lifecycleScope.launch {
             val hasLocalData = withContext(Dispatchers.IO) {
@@ -161,14 +160,7 @@ class MainActivity : AppCompatActivity() {
 
             settingsRepository.setDriveRestorePrompted(true)
 
-            MaterialAlertDialogBuilder(this@MainActivity, R.style.AlertDialogTheme)
-                .setTitle("Restore from Google Drive?")
-                .setMessage("We found a Drive backup for your account (${account.email}). Restore it now?")
-                .setNegativeButton("Not now", null)
-                .setPositiveButton("Restore") { _, _ ->
-                    restoreDriveBackup()
-                }
-                .show()
+            restoreDriveBackup()
         }
     }
 
@@ -421,6 +413,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        binding.bottomNavigation.selectedItemId = R.id.nav_today
         if (hasUsageStatsPermission()) {
             loadData()
         } else {

@@ -49,10 +49,9 @@ Backups are stored in the app-specific Drive space (`appDataFolder`) as
 `headphone_tracker_backup.json`.
 
 When Drive sync is enabled, the app schedules a periodic background sync (every ~15 minutes, when
-network is available and battery is not low) using WorkManager.
-
-You can customize the sync interval, run a manual “Sync now”, and view the last sync/error status
-in **Settings → Data → Google Drive sync**.
+network is available and battery is not low) using WorkManager. The Settings screen keeps a single
+Backup option that triggers a Drive backup; manual restore is not exposed. On fresh reinstall, the
+app will auto-restore from Drive if a backup exists and you sign in with the same Google account.
 
 ## Permissions
 
