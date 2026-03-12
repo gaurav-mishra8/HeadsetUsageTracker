@@ -2,11 +2,14 @@ package com.headphonetracker
 
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.content.ComponentName
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,6 +30,7 @@ import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.headphonetracker.data.AppUsageSummary
 import com.headphonetracker.data.DailyUsageSummary
 import com.headphonetracker.data.HeadphoneUsageDao
@@ -509,9 +513,60 @@ class TodayFragment : Fragment() {
             } else {
                 context.startService(intent.apply { action = "START_TRACKING" })
             }
+            maybePromptNotificationAccess()
         }
 
         requestNotificationPermission()
+    }
+
+    /**
+     * Show a one-time prompt asking the user to grant Notification Access
+     * so MediaSessionManager can accurately detect which app is playing audio.
+     * If they decline, Strategy 3 (UsageEvents) still works as a fallback.
+     */
+    private fun maybePromptNotificationAccess() {
+        // Only prompt once
+        if (settingsRepository.isNotificationAccessPrompted()) return
+        // Already granted — nothing to do
+        if (isNotificationListenerEnabled()) return
+
+        settingsRepository.setNotificationAccessPrompted(true)
+
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        val dialogStyle = if (isNight) R.style.AlertDialogTheme_Dark else R.style.AlertDialogTheme_Light
+        val themedContext = ContextThemeWrapper(requireContext(), dialogStyle)
+
+        MaterialAlertDialogBuilder(themedContext)
+            .setTitle("Improve App Detection")
+            .setMessage(
+                "For the most accurate tracking, Headphone Tracker needs " +
+                "Notification Access to detect which app is playing audio.\n\n" +
+                "This lets us correctly attribute listening time to apps like " +
+                "YouTube, Spotify, or podcasts — even when they play in the background.\n\n" +
+                "Your notifications are never read or stored."
+            )
+            .setPositiveButton("Grant Access") { dialog, _ ->
+                dialog.dismiss()
+                try {
+                    startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
+                } catch (e: Exception) {
+                    Toast.makeText(requireContext(), "Could not open settings", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Maybe Later", null)
+            .setCancelable(true)
+            .show()
+    }
+
+    private fun isNotificationListenerEnabled(): Boolean {
+        val componentName = ComponentName(
+            requireContext(), MediaNotificationListener::class.java
+        )
+        val flat = android.provider.Settings.Secure.getString(
+            requireContext().contentResolver, "enabled_notification_listeners"
+        )
+        return flat != null && flat.contains(componentName.flattenToString())
     }
 
     private fun requestNotificationPermission() {

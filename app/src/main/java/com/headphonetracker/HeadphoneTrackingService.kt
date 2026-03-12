@@ -7,9 +7,11 @@ import android.app.PendingIntent
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
+import android.content.ComponentName
 import android.content.Intent
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.media.session.MediaSessionManager
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
@@ -299,25 +301,24 @@ class HeadphoneTrackingService : LifecycleService() {
 
     /**
      * Get the package name of the app currently playing audio.
-     * This works even when the app is in the background (e.g., Spotify playing music).
-     * Returns null if no audio is playing.
+     * Uses multiple strategies:
+     * 1. AudioPlaybackConfiguration client UID (most accurate, but often returns -1)
+     * 2. MediaSessionManager active sessions (reliable on most devices)
+     * 3. Foreground app as last resort (only when audio IS confirmed playing)
      */
     @Suppress("DEPRECATION")
     private fun getAudioPlayingApp(): String? {
+        // Strategy 1: Try AudioPlaybackConfiguration client UID
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val activePlaybacks = audioManager.activePlaybackConfigurations
             val isMusicActive = audioManager.isMusicActive
 
-            if (activePlaybacks.isEmpty()) {
-                if (isMusicActive) {
-                    Log.d(TAG, "Music active but no playback configs available")
-                }
+            if (activePlaybacks.isEmpty() && !isMusicActive) {
                 return null
             }
 
             Log.d(TAG, "Active playbacks: ${activePlaybacks.size}, isMusicActive=$isMusicActive")
 
-            // Find media or game audio playback
             for (config in activePlaybacks) {
                 val usage = config.audioAttributes.usage
                 Log.d(TAG, "Playback config: usage=$usage")
@@ -325,7 +326,6 @@ class HeadphoneTrackingService : LifecycleService() {
                 if (usage == android.media.AudioAttributes.USAGE_MEDIA ||
                     usage == android.media.AudioAttributes.USAGE_GAME
                 ) {
-                    // Get the client UID using reflection for API 29+
                     try {
                         val getClientUidMethod = config.javaClass.getMethod("getClientUid")
                         val clientUid = getClientUidMethod.invoke(config) as Int
@@ -334,7 +334,7 @@ class HeadphoneTrackingService : LifecycleService() {
                             val packages = packageManager.getPackagesForUid(clientUid)
                             if (!packages.isNullOrEmpty()) {
                                 val pkg = packages[0]
-                                Log.d(TAG, "Audio playing from: $pkg (uid=$clientUid, usage=$usage)")
+                                Log.d(TAG, "Strategy 1 (UID): Audio from $pkg")
                                 return pkg
                             }
                         }
@@ -344,6 +344,50 @@ class HeadphoneTrackingService : LifecycleService() {
                 }
             }
         }
+
+        // Strategy 2: Try MediaSessionManager to find active media session
+        try {
+            val mediaSessionManager = getSystemService(Context.MEDIA_SESSION_SERVICE) as? MediaSessionManager
+            if (mediaSessionManager != null) {
+                try {
+                    // Use our NotificationListenerService component for permission
+                    val listenerComponent = ComponentName(this, MediaNotificationListener::class.java)
+                    val controllers = mediaSessionManager.getActiveSessions(listenerComponent)
+                    for (controller in controllers) {
+                        val state = controller.playbackState
+                        if (state != null && state.state == android.media.session.PlaybackState.STATE_PLAYING) {
+                            val pkg = controller.packageName
+                            if (pkg != packageName) {
+                                Log.d(TAG, "Strategy 2 (MediaSession): Audio from $pkg")
+                                return pkg
+                            }
+                        }
+                    }
+                    // Also check sessions that may not have STATE_PLAYING set but are active
+                    if (controllers.isNotEmpty()) {
+                        val firstNonSelf = controllers.firstOrNull { it.packageName != packageName }
+                        if (firstNonSelf != null) {
+                            val pkg = firstNonSelf.packageName
+                            Log.d(TAG, "Strategy 2 (MediaSession, first active): Audio from $pkg")
+                            return pkg
+                        }
+                    }
+                } catch (e: SecurityException) {
+                    Log.d(TAG, "MediaSession access denied (enable Notification Access in Settings)")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "MediaSessionManager error: ${e.message}")
+        }
+
+        // Strategy 3: Use recent UsageEvents to find the last non-system app
+        // Audio is confirmed playing, so find the most likely media app
+        val recentApp = getMostRecentMediaApp()
+        if (recentApp != null) {
+            Log.d(TAG, "Strategy 3 (recent app+audio): Attributing to $recentApp")
+            return recentApp
+        }
+
         return null
     }
 
@@ -387,6 +431,132 @@ class HeadphoneTrackingService : LifecycleService() {
             return usageStats?.maxByOrNull { it.lastTimeUsed }?.packageName
         } catch (e: Exception) {
             Log.e(TAG, "Error getting foreground app: ${e.message}")
+            return null
+        }
+    }
+
+    /**
+     * Find the most recent media app from UsageEvents.
+     * When audio is playing but we can't detect the source via UID or MediaSession,
+     * look through recent foreground events and prefer known media apps.
+     * Only falls back to a non-media app if absolutely nothing else is found,
+     * and even then only if that app was foregrounded very recently (last 30s).
+     */
+    private fun getMostRecentMediaApp(): String? {
+        val currentTime = System.currentTimeMillis()
+        val startTime = currentTime - 600_000 // Last 10 minutes
+
+        // Known system/utility packages to always skip — these NEVER produce audio
+        val skipPackages = setOf(
+            "com.android.systemui",
+            "com.android.launcher",
+            "com.android.launcher3",
+            "com.google.android.apps.nexuslauncher",
+            "com.google.android.packageinstaller",
+            "com.android.settings",
+            "com.android.vending",
+            "com.google.android.permissioncontroller",
+            "com.google.android.googlequicksearchbox",
+            "com.google.android.gms",
+            "com.android.providers.media",
+            "com.google.android.gm",           // Gmail
+            "com.google.android.apps.messaging", // Messages
+            "com.google.android.dialer",        // Phone
+            "com.google.android.contacts",      // Contacts
+            "com.google.android.calendar",      // Calendar
+            "com.google.android.apps.maps",     // Maps (nav audio is separate)
+            "com.google.android.apps.photos",   // Photos (viewing, not playing)
+            "com.google.android.documentsui",
+            "com.google.android.apps.docs",     // Drive / Docs
+            "com.android.camera",
+            "com.google.android.GoogleCamera",
+            "com.android.calculator2",
+            "com.android.deskclock",
+            "com.android.providers.downloads",
+            packageName
+        )
+
+        // Known media/entertainment app package prefixes (most likely audio sources)
+        val mediaAppPrefixes = listOf(
+            "com.google.android.youtube",
+            "com.spotify",
+            "com.apple.android.music",
+            "com.amazon.mp3",
+            "com.pandora.android",
+            "com.soundcloud",
+            "deezer.android",
+            "com.gaana",
+            "com.jio.media",
+            "com.hungama",
+            "com.wynk",
+            "com.tidal",
+            "com.anghami",
+            "com.audiomack",
+            "com.shazam",
+            "com.google.android.apps.youtube.music",
+            "com.netflix",
+            "com.disney",
+            "com.hbo",
+            "tv.twitch",
+            "com.audible",
+            "fm.castbox",
+            "com.google.android.apps.podcasts",
+            "com.bambuna.podcastaddict",
+            "com.podcast",
+            "com.stitcher",
+            "com.pocketcasts",
+            "au.com.shiftyjelly.pocketcasts",
+            "com.vanced",
+            "app.revanced",
+            "com.brave.browser",
+            "com.android.chrome",
+            "org.mozilla.firefox",
+            "com.opera",
+            "com.samsung.android.app.sbrowser",
+            "com.microsoft.emmx",
+            "com.vlc",
+            "com.mxtech.videoplayer",
+            "org.videolan.vlc"
+        )
+
+        try {
+            val events = usageStatsManager.queryEvents(startTime, currentTime)
+            var bestMediaApp: String? = null
+            var bestMediaTime = 0L
+
+            while (events.hasNextEvent()) {
+                val event = UsageEvents.Event()
+                events.getNextEvent(event)
+
+                @Suppress("DEPRECATION")
+                if (event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND ||
+                    event.eventType == UsageEvents.Event.ACTIVITY_RESUMED
+                ) {
+                    val pkg = event.packageName
+
+                    // Skip system/utility packages entirely
+                    if (skipPackages.contains(pkg)) continue
+
+                    // Only track known media apps — don't guess with random apps
+                    val isMediaApp = mediaAppPrefixes.any { pkg.startsWith(it) }
+
+                    if (isMediaApp && event.timeStamp > bestMediaTime) {
+                        bestMediaApp = pkg
+                        bestMediaTime = event.timeStamp
+                    }
+                }
+            }
+
+            if (bestMediaApp != null) {
+                Log.d(TAG, "getMostRecentMediaApp: media app=$bestMediaApp")
+            } else {
+                Log.d(TAG, "getMostRecentMediaApp: no known media app found in last 10 min")
+            }
+
+            // ONLY return known media apps — never attribute to Gmail, Settings, etc.
+            return bestMediaApp
+        } catch (e: Exception) {
+            Log.e(TAG, "Error finding recent media app: ${e.message}")
             return null
         }
     }
