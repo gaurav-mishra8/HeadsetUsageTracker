@@ -12,10 +12,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
-        android:layout_margin="16dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginTop="8dp"
         android:text="Skip"
         android:textColor="@color/text_secondary"
-        android:textSize="16sp"
+        android:textSize="14sp"
         android:padding="8dp"
         android:clickable="true"
         android:focusable="true"
@@ -32,14 +33,16 @@
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabIndicator"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="24dp"
         android:layout_gravity="center"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="12dp"
         app:tabBackground="@drawable/tab_indicator_selector"
         app:tabGravity="center"
         app:tabIndicatorHeight="0dp"
-        app:tabPaddingStart="8dp"
-        app:tabPaddingEnd="8dp" />
+        app:tabMinWidth="12dp"
+        app:tabMaxWidth="28dp"
+        app:tabPaddingStart="4dp"
+        app:tabPaddingEnd="4dp" />
 
     <!-- Navigation Buttons -->
     <LinearLayout
@@ -47,37 +50,39 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="24dp"
-        android:paddingTop="16dp">
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="16dp">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPrevious"
             android:layout_width="0dp"
-            android:layout_height="56dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:text="Previous"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:textAllCaps="false"
             android:visibility="gone"
-            app:cornerRadius="16dp"
+            app:cornerRadius="14dp"
             app:backgroundTint="@color/surface_elevated"
             app:strokeColor="@color/primary"
             app:strokeWidth="2dp"
             style="@style/Widget.App.Button.Outlined" />
 
         <View
-            android:layout_width="16dp"
+            android:layout_width="12dp"
             android:layout_height="1dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNext"
             android:layout_width="0dp"
-            android:layout_height="56dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:text="Next"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:textAllCaps="false"
-            app:cornerRadius="16dp"
+            app:cornerRadius="14dp"
             app:icon="@drawable/ic_chevron_right"
             app:iconGravity="textEnd"
             app:iconPadding="8dp"
