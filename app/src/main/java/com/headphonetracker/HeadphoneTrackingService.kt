@@ -50,6 +50,7 @@ class HeadphoneTrackingService : LifecycleService() {
     private var isTracking = false
     private var currentSessionStart: Long = 0
     private var lastPackageName: String? = null
+    private var lastAudioApp: String? = null  // Last app that was confirmed playing audio
     private var lastSaveTime: Long = 0
     private var lastBreakReminder: Long = 0
     private var lastLimitWarning: Long = 0
@@ -189,6 +190,7 @@ class HeadphoneTrackingService : LifecycleService() {
             }
 
             lastPackageName = null
+            lastAudioApp = null
 
             // Update widget
             UsageWidgetProvider.sendUpdateBroadcast(this@HeadphoneTrackingService)
@@ -208,19 +210,40 @@ class HeadphoneTrackingService : LifecycleService() {
                 saveSession(lastPackageName!!, currentSessionStart, currentTime)
                 currentSessionStart = 0
                 lastPackageName = null
+                lastAudioApp = null
                 lastSaveTime = 0
             }
             Log.d(TAG, "Check: headphone=false, no tracking")
             return
         }
 
-        // Headphones are connected - prioritize app playing audio, fallback to foreground
+        // Headphones connected — only track if audio is actually playing
         try {
-            // First, try to get the app that's currently playing audio (works even in background)
+            val audioActive = isAudioPlaying()
+
+            if (!audioActive) {
+                // No audio playing — save any existing session and stop tracking
+                if (lastPackageName != null && currentSessionStart > 0) {
+                    Log.d(TAG, "Audio stopped, saving session for $lastPackageName")
+                    saveSession(lastPackageName!!, currentSessionStart, currentTime)
+                    currentSessionStart = 0
+                    lastPackageName = null
+                    lastSaveTime = 0
+                }
+                Log.d(TAG, "Check: headphone=true, audioActive=false, no tracking")
+                return
+            }
+
+            // Audio is playing — identify which app is producing it
             val audioPlayingApp = getAudioPlayingApp()
 
-            // If no audio playing, fall back to foreground app
-            val currentPackage = audioPlayingApp ?: getCurrentForegroundApp()
+            // Use detected audio app, or keep the last known audio app if detection fails
+            // (some apps don't expose UID but are still playing)
+            val currentPackage = audioPlayingApp ?: lastAudioApp
+
+            if (audioPlayingApp != null) {
+                lastAudioApp = audioPlayingApp
+            }
 
             // Check excluded apps
             val excludedApps = settingsRepository.getExcludedApps()
@@ -230,16 +253,8 @@ class HeadphoneTrackingService : LifecycleService() {
                 !currentPackage.startsWith("com.android.systemui") &&
                 !excludedApps.contains(currentPackage)
 
-            val foregroundAppDisplay = if (audioPlayingApp == null) currentPackage else "N/A"
-            val checkMsg = buildString {
-                append("Check: headphone=true, audioApp=")
-                append(audioPlayingApp)
-                append(", foregroundApp=")
-                append(foregroundAppDisplay)
-                append(", tracking=")
-                append(currentPackage)
-            }
-            Log.d(TAG, checkMsg)
+            Log.d(TAG, "Check: headphone=true, audioActive=true, audioApp=$audioPlayingApp, " +
+                "lastAudioApp=$lastAudioApp, tracking=$currentPackage")
 
             if (shouldTrack && currentPackage != null) {
                 if (currentPackage != lastPackageName) {

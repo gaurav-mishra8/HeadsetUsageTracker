@@ -26,9 +26,9 @@ interface HeadphoneUsageDao {
         """
         SELECT date, SUM(duration) as totalDuration 
         FROM headphone_usage 
+        WHERE date >= date('now', '-6 days')
         GROUP BY date 
-        ORDER BY date DESC 
-        LIMIT 7
+        ORDER BY date DESC
     """
     )
     suspend fun getLast7DaysUsage(): List<DailyUsageSummary>

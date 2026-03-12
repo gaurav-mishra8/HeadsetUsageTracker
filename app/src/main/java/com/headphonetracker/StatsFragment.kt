@@ -214,7 +214,7 @@ class StatsFragment : Fragment() {
         }
 
         val entries = hourlyUsage.mapIndexed { index, duration ->
-            BarEntry(index.toFloat(), (duration / 60f))
+            BarEntry(index.toFloat(), (duration / 60000f))
         }
 
         val dataSet = BarDataSet(entries, "").apply {
@@ -399,9 +399,10 @@ class StatsFragment : Fragment() {
         binding.tvMonthDays.text = activeDays.toString()
     }
 
-    private fun formatDurationShort(seconds: Long): String {
-        val hours = seconds / 3600
-        val minutes = (seconds % 3600) / 60
+    private fun formatDurationShort(millis: Long): String {
+        val totalSeconds = millis / 1000
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
 
         return when {
             hours > 0 -> "${hours}h ${minutes}m"
