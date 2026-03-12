@@ -124,7 +124,7 @@ class HeadphoneTrackingService : LifecycleService() {
         }
     }
 
-    private fun createNotification(): Notification {
+    private fun createNotification(contentText: String? = null): Notification {
         val intent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             this,
@@ -133,13 +133,67 @@ class HeadphoneTrackingService : LifecycleService() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        val stopIntent = Intent(this, HeadphoneTrackingService::class.java).apply {
+            action = "STOP_TRACKING"
+        }
+        val stopPendingIntent = PendingIntent.getService(
+            this,
+            1,
+            stopIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val text = contentText ?: getString(R.string.service_notification_text)
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.service_notification_title))
-            .setContentText(getString(R.string.service_notification_text))
-            .setSmallIcon(android.R.drawable.ic_media_play)
+            .setContentText(text)
+            .setSmallIcon(R.drawable.ic_notif_headphones)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .addAction(
+                android.R.drawable.ic_media_pause,
+                "Stop",
+                stopPendingIntent
+            )
             .build()
+    }
+
+    private fun updateNotification(text: String) {
+        val notification = createNotification(text)
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
+    private fun updateTrackingNotification() {
+        val elapsed = System.currentTimeMillis() - sessionStartTime
+        val hours = (elapsed / 3_600_000).toInt()
+        val minutes = ((elapsed % 3_600_000) / 60_000).toInt()
+        val seconds = ((elapsed % 60_000) / 1_000).toInt()
+
+        val duration = when {
+            hours > 0 -> "${hours}h ${minutes}m"
+            minutes > 0 -> "${minutes}m ${seconds}s"
+            else -> "${seconds}s"
+        }
+
+        val currentApp = lastPackageName
+        val appLabel = if (currentApp != null) {
+            try {
+                val appInfo = pkgManager.getApplicationInfo(currentApp, 0)
+                pkgManager.getApplicationLabel(appInfo).toString()
+            } catch (_: Exception) {
+                null
+            }
+        } else null
+
+        val text = when {
+            appLabel != null -> "▶ $appLabel · $duration"
+            isAudioPlaying() -> "Listening · $duration"
+            else -> "Monitoring · $duration"
+        }
+
+        updateNotification(text)
     }
 
     private fun startTracking() {
@@ -156,13 +210,21 @@ class HeadphoneTrackingService : LifecycleService() {
 
         trackingJob = lifecycleScope.launch {
             var widgetUpdateTime = 0L
+            var notifUpdateTime = 0L
             while (isTracking) {
                 checkHeadphoneUsage()
                 checkBreakReminder()
                 checkDailyLimit()
 
-                // Update widget periodically
                 val now = System.currentTimeMillis()
+
+                // Update notification every 10 seconds with live info
+                if (now - notifUpdateTime > 10_000L) {
+                    updateTrackingNotification()
+                    notifUpdateTime = now
+                }
+
+                // Update widget periodically
                 if (now - widgetUpdateTime > WIDGET_UPDATE_INTERVAL) {
                     UsageWidgetProvider.sendUpdateBroadcast(this@HeadphoneTrackingService)
                     widgetUpdateTime = now
