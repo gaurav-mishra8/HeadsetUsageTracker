@@ -38,70 +38,26 @@ class OnboardingActivity : AppCompatActivity() {
     private val pages = listOf(
         OnboardingPage(
             iconRes = R.drawable.ic_headphones,
-            title = "Welcome to Headphone Tracker",
-            subtitle = "Track your listening habits",
-            content = "Monitor how much time you spend with headphones across all your apps. " +
-                "Stay aware of your listening patterns and maintain healthy habits."
+            title = "Track Your Listening",
+            subtitle = "Know your habits",
+            content = "See exactly how long you use headphones and which apps play audio — all in one place."
         ),
         OnboardingPage(
             iconRes = R.drawable.ic_warning,
-            title = "Risks of Excessive Headphone Use",
-            subtitle = "Protect your hearing health",
-            content = "Prolonged headphone usage can lead to several health concerns:",
+            title = "Protect Your Hearing",
+            subtitle = "Stay within safe limits",
+            content = "Experts recommend no more than 60 minutes at 60% volume at a time.",
             bulletPoints = listOf(
-                "Hearing loss and tinnitus from loud volumes",
-                "Ear infections from prolonged use",
-                "Headaches and ear pain",
-                "Social isolation and reduced awareness",
-                "Sleep disruption if used before bed",
-                "Neck and jaw strain from extended use"
+                "Take a 10-min break every hour",
+                "Keep volume below 85 dB",
+                "Limit daily use to 2–3 hours"
             )
-        ),
-        OnboardingPage(
-            iconRes = R.drawable.ic_timer,
-            title = "Recommended Listening Limits",
-            subtitle = "WHO Guidelines",
-            content = "Follow these guidelines to protect your hearing:",
-            bulletPoints = listOf(
-                "60/60 Rule: 60 minutes at 60% volume maximum",
-                "Daily limit: 2-3 hours of continuous use",
-                "Take breaks: 10-15 minutes every hour",
-                "Volume: Keep below 85 dB (60% of max)",
-                "Weekly limit: No more than 40 hours total",
-                "Rest days: Take at least one day off per week"
-            )
-        ),
-        OnboardingPage(
-            iconRes = R.drawable.ic_headphones,
-            title = "Hearing Science",
-            subtitle = "Did you know?",
-            content = "",
-            trivia = "The human ear can detect sounds from 20 Hz to 20,000 Hz. Most headphones can reproduce " +
-                "this full range, but prolonged exposure above 85 dB can cause permanent damage. " +
-                "Your ears need rest to recover!"
-        ),
-        OnboardingPage(
-            iconRes = R.drawable.ic_headphones,
-            title = "Volume Facts",
-            subtitle = "Stay safe",
-            content = "",
-            trivia = "A normal conversation is about 60 dB. Most smartphones can reach 100+ dB at maximum " +
-                "volume. Listening at 100 dB for just 15 minutes can cause hearing damage. " +
-                "Always use the 60/60 rule: 60% volume for 60 minutes max!"
         ),
         OnboardingPage(
             iconRes = R.drawable.ic_headphones,
             title = "You're All Set!",
-            subtitle = "Start tracking your usage",
-            content = "Now you can track your headphone usage, set daily limits, get break reminders, " +
-                "and maintain healthy listening habits.\n\nLet's get started!",
-            bulletPoints = listOf(
-                "Set your daily listening limit",
-                "Enable break reminders",
-                "Track usage across all apps",
-                "View detailed statistics",
-                "Export your data anytime"
-            )
+            subtitle = "Let's get started",
+            content = "Connect your headphones, tap Start Tracking, and we'll handle the rest."
         )
     )
 

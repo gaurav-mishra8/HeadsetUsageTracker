@@ -248,11 +248,13 @@ class TodayFragment : Fragment() {
         datePicker.show(childFragmentManager, "DATE_PICKER")
     }
 
-    private fun loadDataForSelectedDate() {
+    private fun loadDataForSelectedDate(showLoading: Boolean = true) {
         viewLifecycleOwner.lifecycleScope.launch {
-            binding.loadingSkeleton.visibility = View.VISIBLE
-            binding.rvAppList.visibility = View.GONE
-            binding.emptyState.visibility = View.GONE
+            if (showLoading) {
+                binding.loadingSkeleton.visibility = View.VISIBLE
+                binding.rvAppList.visibility = View.GONE
+                binding.emptyState.visibility = View.GONE
+            }
 
             val dateString = dateFormat.format(selectedDate.time)
 
@@ -544,8 +546,8 @@ class TodayFragment : Fragment() {
         binding.btnToggleTracking.iconTint = android.content.res.ColorStateList.valueOf(Color.WHITE)
     }
 
-    private fun loadData() {
-        loadDataForSelectedDate()
+    private fun loadData(showLoading: Boolean = true) {
+        loadDataForSelectedDate(showLoading)
 
         viewLifecycleOwner.lifecycleScope.launch {
             val last7Days = withContext(Dispatchers.IO) {
@@ -671,7 +673,7 @@ class TodayFragment : Fragment() {
             while (isTracking) {
                 kotlinx.coroutines.delay(5000)
                 if (isTracking && _binding != null) {
-                    loadData()
+                    loadData(showLoading = false)
                 }
             }
         }
@@ -688,6 +690,11 @@ class TodayFragment : Fragment() {
         if (_binding != null) {
             updateButton()
             updateStatusIndicator(isTracking)
+            // Reload data on every resume to pick up changes made while the app was backgrounded
+            loadData(showLoading = false)
+            if (isTracking) {
+                startAutoRefresh()
+            }
         }
     }
 

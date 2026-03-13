@@ -152,6 +152,7 @@ class HeadphoneTrackingService : LifecycleService() {
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
+            .setShowWhen(false)
             .addAction(
                 android.R.drawable.ic_media_pause,
                 "Stop",
@@ -385,7 +386,9 @@ class HeadphoneTrackingService : LifecycleService() {
                 Log.d(TAG, "Playback config: usage=$usage")
 
                 if (usage == android.media.AudioAttributes.USAGE_MEDIA ||
-                    usage == android.media.AudioAttributes.USAGE_GAME
+                    usage == android.media.AudioAttributes.USAGE_GAME ||
+                    usage == android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION ||
+                    usage == android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION_SIGNALLING
                 ) {
                     try {
                         val getClientUidMethod = config.javaClass.getMethod("getClientUid")
@@ -486,8 +489,6 @@ class HeadphoneTrackingService : LifecycleService() {
             "com.google.android.gms",
             "com.android.providers.media",
             "com.google.android.gm",           // Gmail
-            "com.google.android.apps.messaging", // Messages
-            "com.google.android.dialer",        // Phone
             "com.google.android.contacts",      // Contacts
             "com.google.android.calendar",      // Calendar
             "com.google.android.apps.maps",     // Maps (nav audio is separate)
@@ -504,6 +505,26 @@ class HeadphoneTrackingService : LifecycleService() {
 
         // Known media/entertainment app package prefixes (most likely audio sources)
         val mediaAppPrefixes = listOf(
+            // Phone & VoIP apps
+            "com.google.android.dialer",
+            "com.samsung.android.dialer",
+            "com.samsung.android.incallui",
+            "com.android.phone",
+            "com.android.dialer",
+            "com.android.incallui",
+            "com.google.android.apps.messaging",
+            "com.whatsapp",
+            "org.telegram",
+            "com.discord",
+            "com.skype",
+            "us.zoom",
+            "com.google.android.apps.meetings",  // Google Meet
+            "com.microsoft.teams",
+            "com.facebook.orca",                  // Messenger
+            "com.viber",
+            "com.linecorp.LGSDK",
+            "jp.naver.line.android",
+            // Music & media apps
             "com.google.android.youtube",
             "com.spotify",
             "com.apple.android.music",
@@ -617,28 +638,38 @@ class HeadphoneTrackingService : LifecycleService() {
         // Check multiple audio focus states
         val isMusicActive = audioManager.isMusicActive
 
+        // Check if a phone/VoIP call is active via AudioManager mode
+        val audioMode = audioManager.mode
+        val isInCall = audioMode == AudioManager.MODE_IN_CALL ||
+            audioMode == AudioManager.MODE_IN_COMMUNICATION
+
         // For Android 8+, also check if any audio playback is happening
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Check active playback configurations
             val activePlaybacks = audioManager.activePlaybackConfigurations
             val hasActivePlayback = activePlaybacks.any { config ->
-                config.audioAttributes.usage == android.media.AudioAttributes.USAGE_MEDIA ||
-                    config.audioAttributes.usage == android.media.AudioAttributes.USAGE_GAME
+                val usage = config.audioAttributes.usage
+                usage == android.media.AudioAttributes.USAGE_MEDIA ||
+                    usage == android.media.AudioAttributes.USAGE_GAME ||
+                    usage == android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION ||
+                    usage == android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION_SIGNALLING
             }
 
             val audioMsg = buildString {
                 append("Audio check: isMusicActive=")
                 append(isMusicActive)
+                append(", isInCall=")
+                append(isInCall)
                 append(", activePlaybacks=")
                 append(activePlaybacks.size)
                 append(", hasActivePlayback=")
                 append(hasActivePlayback)
             }
             Log.d(TAG, audioMsg)
-            return isMusicActive || hasActivePlayback
+            return isMusicActive || hasActivePlayback || isInCall
         }
 
-        return isMusicActive
+        return isMusicActive || isInCall
     }
 
     private suspend fun saveSession(packageName: String, startTime: Long, endTime: Long) {
