@@ -61,6 +61,18 @@ class MainActivity : AppCompatActivity() {
         setupBottomNavigation()
         checkPermissions()
         maybePromptDriveRestore()
+        pruneOldData()
+    }
+
+    /** Delete usage data older than 3 months to keep the database lean. */
+    private fun pruneOldData() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val cutoff = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                .format(java.util.Calendar.getInstance().apply {
+                    add(java.util.Calendar.MONTH, -3)
+                }.time)
+            headphoneUsageDao.deleteOldData(cutoff)
+        }
     }
 
     private fun setupFragments() {

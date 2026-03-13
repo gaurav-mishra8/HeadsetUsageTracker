@@ -37,40 +37,6 @@ class StatsFragment : Fragment() {
     @Inject
     lateinit var headphoneUsageDao: HeadphoneUsageDao
 
-    // App categories mapping
-    private val musicApps = setOf(
-        "com.spotify.music",
-        "com.apple.android.music",
-        "com.amazon.mp3",
-        "com.google.android.apps.youtube.music",
-        "com.soundcloud.android",
-        "deezer.android.app",
-        "com.pandora.android"
-    )
-    private val podcastApps = setOf(
-        "com.google.android.apps.podcasts",
-        "com.spotify.music",
-        "com.apple.podcasts",
-        "fm.castbox.audiobook.radio.podcast",
-        "com.bambuna.podcastaddict"
-    )
-    private val videoApps = setOf(
-        "com.google.android.youtube",
-        "com.netflix.mediaclient",
-        "com.amazon.avod.thirdpartyclient",
-        "com.disney.disneyplus",
-        "com.hbo.hbonow"
-    )
-    private val socialApps = setOf("com.instagram.android", "com.zhiliaoapp.musically", "com.snapchat.android", "com.facebook.katana")
-    private val gamingApps = setOf("com.supercell.clashofclans", "com.kiloo.subwaysurf", "com.mojang.minecraftpe")
-    private val callApps = setOf(
-        "com.google.android.dialer",
-        "com.whatsapp",
-        "org.telegram.messenger",
-        "com.discord",
-        "us.zoom.videomeetings"
-    )
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -92,21 +58,23 @@ class StatsFragment : Fragment() {
 
     private fun loadStats() {
         viewLifecycleOwner.lifecycleScope.launch {
-            loadStreaks()
-            loadWeekComparison()
-            loadHourlyChart()
-            loadCategories()
-            loadMonthlyStats()
+            // Single DB load — all subsequent functions operate on this cached list
+            val allUsage = withContext(Dispatchers.IO) {
+                headphoneUsageDao.getAllUsage()
+            }
+            loadStreaks(allUsage)
+            loadWeekComparison(allUsage)
+            loadHourlyChart(allUsage)
+            loadCategories(allUsage)
+            loadMonthlyStats(allUsage)
         }
     }
 
-    private suspend fun loadStreaks() {
-        val allDates = withContext(Dispatchers.IO) {
-            headphoneUsageDao.getAllUsage()
-                .map { it.date }
-                .distinct()
-                .sortedDescending()
-        }
+    private fun loadStreaks(allUsage: List<com.headphonetracker.data.HeadphoneUsage>) {
+        val allDates = allUsage
+            .map { it.date }
+            .distinct()
+            .sortedDescending()
 
         if (allDates.isEmpty()) {
             binding.tvCurrentStreak.text = "0"
@@ -159,7 +127,7 @@ class StatsFragment : Fragment() {
         binding.tvLongestStreak.text = longestStreak.toString()
     }
 
-    private suspend fun loadWeekComparison() {
+    private fun loadWeekComparison(allUsage: List<com.headphonetracker.data.HeadphoneUsage>) {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val calendar = Calendar.getInstance()
 
@@ -172,15 +140,11 @@ class StatsFragment : Fragment() {
         calendar.add(Calendar.DAY_OF_YEAR, -6)
         val lastWeekStart = dateFormat.format(calendar.time)
 
-        val allUsage = withContext(Dispatchers.IO) {
-            headphoneUsageDao.getAllUsage()
-        }
-
         val thisWeekTotal = allUsage.filter { it.date in thisWeekStart..thisWeekEnd }.sumOf { it.duration }
         val lastWeekTotal = allUsage.filter { it.date in lastWeekStart..lastWeekEnd }.sumOf { it.duration }
 
-        binding.tvThisWeekTotal.text = formatDurationShort(thisWeekTotal)
-        binding.tvLastWeekTotal.text = formatDurationShort(lastWeekTotal)
+        binding.tvThisWeekTotal.text = DurationUtils.formatDurationShort(thisWeekTotal)
+        binding.tvLastWeekTotal.text = DurationUtils.formatDurationShort(lastWeekTotal)
 
         val changePercent = if (lastWeekTotal > 0) {
             ((thisWeekTotal - lastWeekTotal) * 100 / lastWeekTotal).toInt()
@@ -200,11 +164,7 @@ class StatsFragment : Fragment() {
         )
     }
 
-    private suspend fun loadHourlyChart() {
-        val allUsage = withContext(Dispatchers.IO) {
-            headphoneUsageDao.getAllUsage()
-        }
-
+    private fun loadHourlyChart(allUsage: List<com.headphonetracker.data.HeadphoneUsage>) {
         val hourlyUsage = LongArray(24) { 0L }
         allUsage.forEach { usage ->
             val hour = Calendar.getInstance().apply {
@@ -275,32 +235,15 @@ class StatsFragment : Fragment() {
         binding.tvPeakHour.text = "Peak listening: $peakHourStr"
     }
 
-    private suspend fun loadCategories() {
-        val allUsage = withContext(Dispatchers.IO) {
-            headphoneUsageDao.getAllUsage()
+    private fun loadCategories(allUsage: List<com.headphonetracker.data.HeadphoneUsage>) {
+        val categoryTotals = mutableMapOf<String, Long>()
+        for (cat in AppCategories.Category.values()) {
+            categoryTotals[cat.label] = 0L
         }
 
-        val categoryTotals = mutableMapOf(
-            "Music" to 0L,
-            "Podcasts" to 0L,
-            "Video" to 0L,
-            "Social" to 0L,
-            "Gaming" to 0L,
-            "Calls" to 0L,
-            "Other" to 0L
-        )
-
         allUsage.forEach { usage ->
-            val category = when {
-                musicApps.contains(usage.packageName) -> "Music"
-                podcastApps.contains(usage.packageName) -> "Podcasts"
-                videoApps.contains(usage.packageName) -> "Video"
-                socialApps.contains(usage.packageName) -> "Social"
-                gamingApps.contains(usage.packageName) -> "Gaming"
-                callApps.contains(usage.packageName) -> "Calls"
-                else -> "Other"
-            }
-            categoryTotals[category] = (categoryTotals[category] ?: 0L) + usage.duration
+            val category = AppCategories.categorize(usage.packageName)
+            categoryTotals[category.label] = (categoryTotals[category.label] ?: 0L) + usage.duration
         }
 
         val totalDuration = categoryTotals.values.sum().coerceAtLeast(1)
@@ -313,6 +256,7 @@ class StatsFragment : Fragment() {
             "Social" to R.color.chart_4,
             "Gaming" to R.color.chart_5,
             "Calls" to R.color.primary,
+            "Browser" to R.color.secondary,
             "Other" to R.color.text_tertiary
         )
 
@@ -340,7 +284,7 @@ class StatsFragment : Fragment() {
             }
 
             val durationLabel = TextView(ctx).apply {
-                text = formatDurationShort(duration)
+                text = DurationUtils.formatDurationShort(duration)
                 setTextColor(ContextCompat.getColor(ctx, R.color.text_tertiary))
                 textSize = 12f
             }
@@ -375,7 +319,7 @@ class StatsFragment : Fragment() {
         }
     }
 
-    private suspend fun loadMonthlyStats() {
+    private fun loadMonthlyStats(allUsage: List<com.headphonetracker.data.HeadphoneUsage>) {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val calendar = Calendar.getInstance()
 
@@ -385,29 +329,15 @@ class StatsFragment : Fragment() {
         calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
         val monthEnd = dateFormat.format(calendar.time)
 
-        val monthUsage = withContext(Dispatchers.IO) {
-            headphoneUsageDao.getAllUsage()
-                .filter { it.date in monthStart..monthEnd }
-        }
+        val monthUsage = allUsage.filter { it.date in monthStart..monthEnd }
 
         val totalDuration = monthUsage.sumOf { it.duration }
         val activeDays = monthUsage.map { it.date }.distinct().size
         val avgDaily = if (activeDays > 0) totalDuration / activeDays else 0
 
-        binding.tvMonthTotal.text = formatDurationShort(totalDuration)
-        binding.tvMonthAverage.text = formatDurationShort(avgDaily)
+        binding.tvMonthTotal.text = DurationUtils.formatDurationShort(totalDuration)
+        binding.tvMonthAverage.text = DurationUtils.formatDurationShort(avgDaily)
         binding.tvMonthDays.text = activeDays.toString()
-    }
-
-    private fun formatDurationShort(millis: Long): String {
-        val totalSeconds = millis / 1000
-        val hours = totalSeconds / 3600
-        val minutes = (totalSeconds % 3600) / 60
-
-        return when {
-            hours > 0 -> "${hours}h ${minutes}m"
-            else -> "${minutes}m"
-        }
     }
 
     private fun Int.dpToPx(): Int = (this * resources.displayMetrics.density).toInt()

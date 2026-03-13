@@ -1,9 +1,16 @@
 package com.headphonetracker.data
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "headphone_usage")
+@Entity(
+    tableName = "headphone_usage",
+    indices = [
+        Index(value = ["date"]),
+        Index(value = ["date", "packageName"])
+    ]
+)
 data class HeadphoneUsage(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

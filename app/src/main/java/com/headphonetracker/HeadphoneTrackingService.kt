@@ -475,96 +475,9 @@ class HeadphoneTrackingService : LifecycleService() {
         val currentTime = System.currentTimeMillis()
         val startTime = currentTime - 600_000 // Last 10 minutes
 
-        // Known system/utility packages to always skip — these NEVER produce audio
-        val skipPackages = setOf(
-            "com.android.systemui",
-            "com.android.launcher",
-            "com.android.launcher3",
-            "com.google.android.apps.nexuslauncher",
-            "com.google.android.packageinstaller",
-            "com.android.settings",
-            "com.android.vending",
-            "com.google.android.permissioncontroller",
-            "com.google.android.googlequicksearchbox",
-            "com.google.android.gms",
-            "com.android.providers.media",
-            "com.google.android.gm",           // Gmail
-            "com.google.android.contacts",      // Contacts
-            "com.google.android.calendar",      // Calendar
-            "com.google.android.apps.maps",     // Maps (nav audio is separate)
-            "com.google.android.apps.photos",   // Photos (viewing, not playing)
-            "com.google.android.documentsui",
-            "com.google.android.apps.docs",     // Drive / Docs
-            "com.android.camera",
-            "com.google.android.GoogleCamera",
-            "com.android.calculator2",
-            "com.android.deskclock",
-            "com.android.providers.downloads",
-            packageName
-        )
-
-        // Known media/entertainment app package prefixes (most likely audio sources)
-        val mediaAppPrefixes = listOf(
-            // Phone & VoIP apps
-            "com.google.android.dialer",
-            "com.samsung.android.dialer",
-            "com.samsung.android.incallui",
-            "com.android.phone",
-            "com.android.dialer",
-            "com.android.incallui",
-            "com.google.android.apps.messaging",
-            "com.whatsapp",
-            "org.telegram",
-            "com.discord",
-            "com.skype",
-            "us.zoom",
-            "com.google.android.apps.meetings",  // Google Meet
-            "com.microsoft.teams",
-            "com.facebook.orca",                  // Messenger
-            "com.viber",
-            "com.linecorp.LGSDK",
-            "jp.naver.line.android",
-            // Music & media apps
-            "com.google.android.youtube",
-            "com.spotify",
-            "com.apple.android.music",
-            "com.amazon.mp3",
-            "com.pandora.android",
-            "com.soundcloud",
-            "deezer.android",
-            "com.gaana",
-            "com.jio.media",
-            "com.hungama",
-            "com.wynk",
-            "com.tidal",
-            "com.anghami",
-            "com.audiomack",
-            "com.shazam",
-            "com.google.android.apps.youtube.music",
-            "com.netflix",
-            "com.disney",
-            "com.hbo",
-            "tv.twitch",
-            "com.audible",
-            "fm.castbox",
-            "com.google.android.apps.podcasts",
-            "com.bambuna.podcastaddict",
-            "com.podcast",
-            "com.stitcher",
-            "com.pocketcasts",
-            "au.com.shiftyjelly.pocketcasts",
-            "com.vanced",
-            "app.revanced",
-            "com.brave.browser",
-            "com.android.chrome",
-            "org.mozilla.firefox",
-            "com.opera",
-            "com.samsung.android.app.sbrowser",
-            "com.microsoft.emmx",
-            "com.vlc",
-            "com.mxtech.videoplayer",
-            "org.videolan.vlc"
-        )
+        // Use shared registry — also skip our own package
+        val skipPackages = AppCategories.skipPackages + packageName
+        val mediaAppPrefixes = AppCategories.knownAudioAppPrefixes
 
         try {
             val events = usageStatsManager.queryEvents(startTime, currentTime)
@@ -751,18 +664,19 @@ class HeadphoneTrackingService : LifecycleService() {
         if ((now - lastLimitWarning) < 5 * 60 * 1000L) return
 
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val todayUsage = withContext(Dispatchers.IO) {
+        val todayUsageMs = withContext(Dispatchers.IO) {
             headphoneUsageDao.getTotalUsageForDate(today) ?: 0L
         }
 
-        val usageMinutes = todayUsage / 60
-        val limitSeconds = limitMinutes * 60L
+        val usageMinutes = todayUsageMs / 60_000L
+        val limitMs = limitMinutes * 60_000L
 
-        // Warn at 80% and 100%
-        if (todayUsage >= limitSeconds && (now - lastLimitWarning) >= 30 * 60 * 1000L) {
+        // Warn at 100%
+        if (todayUsageMs >= limitMs && (now - lastLimitWarning) >= 30 * 60 * 1000L) {
             showLimitNotification("Daily limit reached!", "You've reached your $limitMinutes minute daily limit.")
             lastLimitWarning = now
-        } else if (todayUsage >= (limitSeconds * 0.8) && usageMinutes < limitMinutes) {
+        } else if (todayUsageMs >= (limitMs * 0.8).toLong() && usageMinutes < limitMinutes) {
+            // Warn at 80%
             val remaining = limitMinutes - usageMinutes
             showLimitNotification("Approaching daily limit", "You have about $remaining minutes remaining.")
             lastLimitWarning = now

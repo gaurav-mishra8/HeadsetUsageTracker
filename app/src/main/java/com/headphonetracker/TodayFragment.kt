@@ -559,7 +559,7 @@ class TodayFragment : Fragment() {
     }
 
     private fun animateTotalTime(newDuration: Long) {
-        binding.tvTotalTime.text = formatDuration(newDuration)
+        binding.tvTotalTime.text = DurationUtils.formatDuration(newDuration)
     }
 
     private fun updatePieChart(usageList: List<AppUsageSummary>, totalDuration: Long) {
@@ -652,19 +652,6 @@ class TodayFragment : Fragment() {
 
         binding.barChart.animateY(800, Easing.EaseInOutCubic)
         binding.barChart.invalidate()
-    }
-
-    private fun formatDuration(millis: Long): String {
-        val seconds = millis / 1000
-        val hours = seconds / 3600
-        val minutes = (seconds % 3600) / 60
-        val secs = seconds % 60
-
-        return when {
-            hours > 0 -> "${hours}h ${minutes}m"
-            minutes > 0 -> "${minutes}m ${secs}s"
-            else -> "${secs}s"
-        }
     }
 
     private fun startAutoRefresh() {

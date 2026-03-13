@@ -49,7 +49,7 @@ class AppUsageAdapter(
         val usage = usageList[adapterPosition]
 
         holder.binding.tvAppName.text = usage.appName
-        holder.binding.tvUsageTime.text = formatDuration(usage.totalDuration)
+        holder.binding.tvUsageTime.text = DurationUtils.formatDuration(usage.totalDuration)
 
         val percentage = if (totalDuration > 0) {
             (usage.totalDuration * 100f / totalDuration).roundToInt()
@@ -179,18 +179,5 @@ class AppUsageAdapter(
             observersField.isAccessible = true
             observersField.get(observable) != null
         }.getOrDefault(false)
-    }
-
-    private fun formatDuration(millis: Long): String {
-        val seconds = millis / 1000
-        val hours = seconds / 3600
-        val minutes = (seconds % 3600) / 60
-        val secs = seconds % 60
-
-        return when {
-            hours > 0 -> "${hours}h ${minutes}m"
-            minutes > 0 -> "${minutes}m ${secs}s"
-            else -> "${secs}s"
-        }
     }
 }
