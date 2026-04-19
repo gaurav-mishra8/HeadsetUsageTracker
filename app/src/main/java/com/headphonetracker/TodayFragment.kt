@@ -471,31 +471,50 @@ class TodayFragment : Fragment() {
                 }
                 .start()
 
-            exportWeeklyData()
+            showExportDateRangePicker()
         }
     }
 
-    private fun exportWeeklyData() {
+    private fun showExportDateRangePicker() {
+        val picker = com.google.android.material.datepicker.MaterialDatePicker.Builder
+            .dateRangePicker()
+            .setTitleText("Select export range")
+            .setSelection(
+                androidx.core.util.Pair(
+                    com.google.android.material.datepicker.MaterialDatePicker.thisMonthInUtcMilliseconds(),
+                    com.google.android.material.datepicker.MaterialDatePicker.todayInUtcMilliseconds()
+                )
+            )
+            .build()
+
+        picker.addOnPositiveButtonClickListener { selection ->
+            val startMs = selection.first ?: return@addOnPositiveButtonClickListener
+            val endMs = selection.second ?: return@addOnPositiveButtonClickListener
+            exportDateRange(startMs, endMs)
+        }
+
+        picker.show(childFragmentManager, "export_date_picker")
+    }
+
+    private fun exportDateRange(startMs: Long, endMs: Long) {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val calendar = Calendar.getInstance()
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                val endDate = dateFormat.format(calendar.time)
-                calendar.add(Calendar.DAY_OF_YEAR, -6)
-                val startDate = dateFormat.format(calendar.time)
+                val startDate = dateFormat.format(Date(startMs))
+                val endDate = dateFormat.format(Date(endMs))
 
                 val detailedUsage = withContext(Dispatchers.IO) {
                     headphoneUsageDao.getUsageForDateRange(startDate, endDate)
                 }
 
-                if (cachedWeeklyData.isEmpty() && detailedUsage.isEmpty()) {
-                    Toast.makeText(requireContext(), "No data to export", Toast.LENGTH_SHORT).show()
+                if (detailedUsage.isEmpty()) {
+                    Toast.makeText(requireContext(), "No data in selected range", Toast.LENGTH_SHORT).show()
                     return@launch
                 }
 
                 ExportUtils.exportAndShareWeeklyData(
                     requireActivity(),
-                    cachedWeeklyData,
+                    emptyList(),
                     detailedUsage
                 )
             } catch (e: Exception) {
