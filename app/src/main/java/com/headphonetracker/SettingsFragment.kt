@@ -22,6 +22,7 @@ import com.headphonetracker.data.HeadphoneUsageDao
 import com.headphonetracker.data.SettingsRepository
 import com.headphonetracker.databinding.FragmentSettingsBinding
 import com.headphonetracker.sync.DriveSyncManager
+import com.headphonetracker.sync.DriveSyncScheduler
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -59,6 +60,7 @@ class SettingsFragment : Fragment() {
             val account = task.getResult(ApiException::class.java)
             settingsRepository.setDriveSyncEnabled(true)
             settingsRepository.setDriveAccountEmail(account.email ?: "")
+            DriveSyncScheduler.schedule(requireContext(), settingsRepository.getDriveSyncIntervalMinutes())
             Toast.makeText(requireContext(), "Google Drive connected", Toast.LENGTH_SHORT).show()
 
             if (pendingDriveAction == DriveAction.BACKUP) {
