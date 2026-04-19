@@ -306,9 +306,21 @@ class HeadphoneTrackingService : LifecycleService() {
             // Audio is playing — identify which app is producing it
             val audioPlayingApp = getAudioPlayingApp()
 
-            // Use detected audio app, or keep the last known audio app if detection fails
-            // (some apps don't expose UID but are still playing)
-            val currentPackage = audioPlayingApp ?: lastAudioApp
+            // Strategy 3: if both UID detection and known-app heuristic fail,
+            // fall back to whatever is currently in the foreground (excluding system/utility apps).
+            // This catches niche/regional apps not in the known-app list.
+            val foregroundFallback = if (audioPlayingApp == null && lastAudioApp == null) {
+                val fg = getCurrentForegroundApp()
+                if (fg != null && fg != packageName &&
+                    !fg.startsWith("com.android.systemui") &&
+                    !AppCategories.skipPackages.contains(fg)
+                ) {
+                    Log.d(TAG, "Strategy 3 (foreground fallback): attributing to $fg")
+                    fg
+                } else null
+            } else null
+
+            val currentPackage = audioPlayingApp ?: lastAudioApp ?: foregroundFallback
 
             if (audioPlayingApp != null) {
                 lastAudioApp = audioPlayingApp
