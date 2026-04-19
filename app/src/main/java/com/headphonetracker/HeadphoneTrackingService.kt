@@ -259,6 +259,7 @@ class HeadphoneTrackingService : LifecycleService() {
 
             lastPackageName = null
             lastAudioApp = null
+            settingsRepository.setCurrentTrackingAppName("")
 
             // Update widget
             UsageWidgetProvider.sendUpdateBroadcast(this@HeadphoneTrackingService)
@@ -351,6 +352,12 @@ class HeadphoneTrackingService : LifecycleService() {
                     currentSessionStart = currentTime
                     lastSaveTime = currentTime
                     Log.d(TAG, "Started new session for $currentPackage")
+
+                    // Persist current app name for widget
+                    val appLabel = try {
+                        pkgManager.getApplicationLabel(pkgManager.getApplicationInfo(currentPackage, 0)).toString()
+                    } catch (_: Exception) { currentPackage.substringAfterLast(".") }
+                    settingsRepository.setCurrentTrackingAppName(appLabel)
                 } else {
                     // Same app, check if we should save incrementally
                     if (currentSessionStart > 0 && (currentTime - lastSaveTime) >= SAVE_INTERVAL) {

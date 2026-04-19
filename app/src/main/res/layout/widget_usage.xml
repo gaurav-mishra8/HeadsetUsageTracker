@@ -9,8 +9,8 @@
     android:padding="16dp">
 
     <ImageView
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
         android:src="@drawable/ic_headphones"
         app:tint="@color/primary" />
 
@@ -18,9 +18,9 @@
         android:id="@+id/tvWidgetTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         android:text="0m"
-        android:textSize="28sp"
+        android:textSize="26sp"
         android:textColor="@android:color/white"
         android:fontFamily="sans-serif-medium" />
 
@@ -28,17 +28,41 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Today"
-        android:textSize="12sp"
+        android:textSize="11sp"
         android:textColor="#99FFFFFF" />
+
+    <TextView
+        android:id="@+id/tvWidgetCurrentApp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text=""
+        android:textSize="11sp"
+        android:textColor="#CCFFFFFF"
+        android:fontFamily="sans-serif-medium"
+        android:maxLines="1"
+        android:ellipsize="end" />
 
     <TextView
         android:id="@+id/tvWidgetStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:text="● Inactive"
-        android:textSize="11sp"
+        android:textSize="10sp"
         android:textColor="#66FFFFFF" />
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/btnWidgetToggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="6dp"
+        android:background="@drawable/widget_btn_background"
+        android:text="Start"
+        android:textSize="12sp"
+        android:textColor="@android:color/white"
+        android:fontFamily="sans-serif-medium" />
 
+</LinearLayout>

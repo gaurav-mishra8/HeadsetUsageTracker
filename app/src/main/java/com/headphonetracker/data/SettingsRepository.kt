@@ -47,6 +47,8 @@ class SettingsRepository @Inject constructor(
     // Tracking state (transient)
     fun isTracking(): Boolean = prefs.getBoolean("is_tracking", false)
     fun setTracking(value: Boolean) = prefs.edit().putBoolean("is_tracking", value).apply()
+    fun getCurrentTrackingAppName(): String = prefs.getString("current_tracking_app_name", "") ?: ""
+    fun setCurrentTrackingAppName(value: String) = prefs.edit().putString("current_tracking_app_name", value).apply()
 
     // Google Drive sync
     fun isDriveSyncEnabled(): Boolean = prefs.getBoolean("drive_sync_enabled", false)
