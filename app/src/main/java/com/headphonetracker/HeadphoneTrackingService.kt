@@ -295,6 +295,7 @@ class HeadphoneTrackingService : LifecycleService() {
                     lastPackageName = null
                     lastSaveTime = 0
                 }
+                lastAudioApp = null
                 Log.d(TAG, "Check: headphone=true, audioActive=false, no tracking")
                 return
             }
@@ -313,9 +314,10 @@ class HeadphoneTrackingService : LifecycleService() {
             // Check excluded apps
             val excludedApps = settingsRepository.getExcludedApps()
 
-            // Skip our own app, system UI, and excluded apps
+            // Skip our own app, system/utility apps, and user-excluded apps
             val shouldTrack = currentPackage != null && currentPackage != packageName &&
                 !currentPackage.startsWith("com.android.systemui") &&
+                !AppCategories.skipPackages.contains(currentPackage) &&
                 !excludedApps.contains(currentPackage)
 
             Log.d(TAG, "Check: headphone=true, audioActive=true, audioApp=$audioPlayingApp, " +
@@ -387,8 +389,7 @@ class HeadphoneTrackingService : LifecycleService() {
 
                 if (usage == android.media.AudioAttributes.USAGE_MEDIA ||
                     usage == android.media.AudioAttributes.USAGE_GAME ||
-                    usage == android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION ||
-                    usage == android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION_SIGNALLING
+                    usage == android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION
                 ) {
                     try {
                         val getClientUidMethod = config.javaClass.getMethod("getClientUid")
@@ -473,11 +474,11 @@ class HeadphoneTrackingService : LifecycleService() {
      */
     private fun getMostRecentMediaApp(): String? {
         val currentTime = System.currentTimeMillis()
-        val startTime = currentTime - 600_000 // Last 10 minutes
+        val startTime = currentTime - 120_000 // Last 2 minutes
 
         // Use shared registry — also skip our own package
         val skipPackages = AppCategories.skipPackages + packageName
-        val mediaAppPrefixes = AppCategories.knownAudioAppPrefixes
+        val mediaAppPrefixes = AppCategories.mediaAttributionPrefixes
 
         try {
             val events = usageStatsManager.queryEvents(startTime, currentTime)
@@ -564,8 +565,7 @@ class HeadphoneTrackingService : LifecycleService() {
                 val usage = config.audioAttributes.usage
                 usage == android.media.AudioAttributes.USAGE_MEDIA ||
                     usage == android.media.AudioAttributes.USAGE_GAME ||
-                    usage == android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION ||
-                    usage == android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION_SIGNALLING
+                    usage == android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION
             }
 
             val audioMsg = buildString {

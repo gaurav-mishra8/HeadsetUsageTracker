@@ -120,6 +120,20 @@ object AppCategories {
     }
 
     /**
+     * Prefixes used for foreground-app fallback attribution (Strategy 2).
+     * Excludes CALLS apps — those should only be attributed when USAGE_VOICE_COMMUNICATION
+     * is detected directly via AudioPlaybackConfiguration (Strategy 1), not by checking
+     * which communication app was last in the foreground.
+     */
+    val mediaAttributionPrefixes: List<String> by lazy {
+        prefixToCategory
+            .filter { (_, category) ->
+                category != Category.CALLS && category != Category.SOCIAL
+            }
+            .map { it.first }
+    }
+
+    /**
      * System/utility packages to always skip during attribution.
      * These never produce user-initiated audio.
      */
