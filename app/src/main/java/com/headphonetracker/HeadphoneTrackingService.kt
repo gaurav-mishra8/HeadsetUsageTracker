@@ -204,8 +204,19 @@ class HeadphoneTrackingService : LifecycleService() {
 
         isTracking = true
         isTrackingFlow.value = true
-        sessionStartTime = System.currentTimeMillis()
+        val now = System.currentTimeMillis()
+        sessionStartTime = now
         settingsRepository.setTracking(true)
+
+        // Restore continuous session if gap since last stop is < 30 minutes
+        val lastStop = settingsRepository.getLastStopTime()
+        val gapMs = if (lastStop > 0) now - lastStop else Long.MAX_VALUE
+        if (gapMs < 30 * 60 * 1000L) {
+            val saved = settingsRepository.getContinuousListenStart()
+            if (saved > 0) sessionStartTime = saved
+        } else {
+            settingsRepository.setContinuousListenStart(now)
+        }
         wakeLock.acquire(10 * 60 * 60 * 1000L) // 10 hours
 
         // Update widget
@@ -245,6 +256,8 @@ class HeadphoneTrackingService : LifecycleService() {
         isTracking = false
         isTrackingFlow.value = false
         settingsRepository.setTracking(false)
+        settingsRepository.setLastStopTime(System.currentTimeMillis())
+        settingsRepository.setContinuousListenStart(sessionStartTime)
         trackingJob?.cancel()
 
         if (wakeLock.isHeld) {

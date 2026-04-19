@@ -50,6 +50,12 @@ class SettingsRepository @Inject constructor(
     fun getCurrentTrackingAppName(): String = prefs.getString("current_tracking_app_name", "") ?: ""
     fun setCurrentTrackingAppName(value: String) = prefs.edit().putString("current_tracking_app_name", value).apply()
 
+    // Continuous listening session (for break reminders — survives brief stop/start gaps)
+    fun getContinuousListenStart(): Long = prefs.getLong("continuous_listen_start", 0L)
+    fun setContinuousListenStart(value: Long) = prefs.edit().putLong("continuous_listen_start", value).apply()
+    fun getLastStopTime(): Long = prefs.getLong("last_stop_time", 0L)
+    fun setLastStopTime(value: Long) = prefs.edit().putLong("last_stop_time", value).apply()
+
     // Google Drive sync
     fun isDriveSyncEnabled(): Boolean = prefs.getBoolean("drive_sync_enabled", false)
     fun setDriveSyncEnabled(value: Boolean) = prefs.edit().putBoolean("drive_sync_enabled", value).apply()
