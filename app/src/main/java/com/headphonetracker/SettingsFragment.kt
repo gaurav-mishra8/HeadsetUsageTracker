@@ -21,6 +21,7 @@ import com.headphonetracker.data.BackupJsonUtils
 import com.headphonetracker.data.HeadphoneUsageDao
 import com.headphonetracker.data.SettingsRepository
 import com.headphonetracker.databinding.FragmentSettingsBinding
+import com.headphonetracker.notifications.DailySummaryScheduler
 import com.headphonetracker.sync.DriveSyncManager
 import com.headphonetracker.sync.DriveSyncScheduler
 import dagger.hilt.android.AndroidEntryPoint
@@ -179,7 +180,10 @@ class SettingsFragment : Fragment() {
             HapticUtils.performSelectionFeedback(view)
             settingsRepository.setDailySummaryEnabled(isChecked)
             if (isChecked) {
+                DailySummaryScheduler.schedule(requireContext())
                 Toast.makeText(requireContext(), "Daily summary enabled at 9 PM", Toast.LENGTH_SHORT).show()
+            } else {
+                DailySummaryScheduler.cancel(requireContext())
             }
         }
 
