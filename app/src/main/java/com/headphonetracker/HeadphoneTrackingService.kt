@@ -21,6 +21,7 @@ import com.headphonetracker.data.HeadphoneUsage
 import com.headphonetracker.data.HeadphoneUsageDao
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import com.headphonetracker.notifications.MilestoneChecker
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,6 +55,7 @@ class HeadphoneTrackingService : LifecycleService() {
     private var lastSaveTime: Long = 0
     private var lastBreakReminder: Long = 0
     private var lastLimitWarning: Long = 0
+    private var lastMilestoneCheck: Long = 0
     private var sessionStartTime: Long = 0 // For break reminders
 
     private val wakeLock by lazy {
@@ -216,6 +218,7 @@ class HeadphoneTrackingService : LifecycleService() {
                 checkHeadphoneUsage()
                 checkBreakReminder()
                 checkDailyLimit()
+                checkMilestones()
 
                 val now = System.currentTimeMillis()
 
@@ -693,6 +696,13 @@ class HeadphoneTrackingService : LifecycleService() {
             .build()
 
         notificationManager.notify(LIMIT_NOTIFICATION_ID, notification)
+    }
+
+    private suspend fun checkMilestones() {
+        val now = System.currentTimeMillis()
+        if ((now - lastMilestoneCheck) < 5 * 60 * 1000L) return
+        lastMilestoneCheck = now
+        MilestoneChecker.check(this, headphoneUsageDao, settingsRepository)
     }
 
     override fun onDestroy() {

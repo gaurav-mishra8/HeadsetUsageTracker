@@ -61,4 +61,12 @@ class SettingsRepository @Inject constructor(
     fun setDriveSyncIntervalMinutes(value: Int) = prefs.edit().putInt("drive_sync_interval_minutes", value).apply()
     fun isDriveRestorePrompted(): Boolean = prefs.getBoolean("drive_restore_prompted", false)
     fun setDriveRestorePrompted(value: Boolean) = prefs.edit().putBoolean("drive_restore_prompted", value).apply()
+
+    // Milestones
+    fun getAwardedMilestones(): Set<String> = prefs.getStringSet("awarded_milestones", emptySet()) ?: emptySet()
+    fun addAwardedMilestone(key: String) {
+        val current = getAwardedMilestones().toMutableSet()
+        current.add(key)
+        prefs.edit().putStringSet("awarded_milestones", current).apply()
+    }
 }

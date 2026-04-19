@@ -58,4 +58,10 @@ interface HeadphoneUsageDao {
 
     @Query("DELETE FROM headphone_usage")
     suspend fun deleteAllUsage()
+
+    @Query("SELECT SUM(duration) FROM headphone_usage")
+    suspend fun getTotalUsageAllTime(): Long?
+
+    @Query("SELECT COUNT(DISTINCT date) FROM headphone_usage")
+    suspend fun getTotalDaysWithUsage(): Int
 }
