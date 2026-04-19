@@ -62,6 +62,29 @@ interface HeadphoneUsageDao {
     @Query("SELECT SUM(duration) FROM headphone_usage")
     suspend fun getTotalUsageAllTime(): Long?
 
+    @Query(
+        """
+        SELECT date, SUM(duration) as totalDuration
+        FROM headphone_usage
+        WHERE packageName = :packageName
+        GROUP BY date
+        ORDER BY date DESC
+        LIMIT 30
+    """
+    )
+    suspend fun getLast30DaysUsageForApp(packageName: String): List<DailyUsageSummary>
+
+    @Query("SELECT SUM(duration) FROM headphone_usage WHERE packageName = :packageName")
+    suspend fun getTotalDurationForApp(packageName: String): Long?
+
+    @Query(
+        """
+        SELECT SUM(duration) FROM headphone_usage
+        WHERE packageName = :packageName AND date >= :sinceDate
+    """
+    )
+    suspend fun getDurationForAppSince(packageName: String, sinceDate: String): Long?
+
     @Query("SELECT COUNT(DISTINCT date) FROM headphone_usage")
     suspend fun getTotalDaysWithUsage(): Int
 }

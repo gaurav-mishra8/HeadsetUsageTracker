@@ -17,7 +17,8 @@ import kotlinx.coroutines.withContext
 class AppUsageAdapter(
     private var usageList: List<AppUsageSummary>,
     private var totalDuration: Long,
-    private val packageManager: android.content.pm.PackageManager
+    private val packageManager: android.content.pm.PackageManager,
+    private val onItemClick: ((packageName: String, appName: String) -> Unit)? = null
 ) : RecyclerView.Adapter<AppUsageAdapter.ViewHolder>() {
 
     private var lastAnimatedPosition = -1
@@ -47,6 +48,10 @@ class AppUsageAdapter(
             return
         }
         val usage = usageList[adapterPosition]
+
+        holder.binding.root.setOnClickListener {
+            onItemClick?.invoke(usage.packageName, usage.appName)
+        }
 
         holder.binding.tvAppName.text = usage.appName
         holder.binding.tvUsageTime.text = DurationUtils.formatDuration(usage.totalDuration)

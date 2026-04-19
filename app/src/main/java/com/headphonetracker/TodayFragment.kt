@@ -322,7 +322,13 @@ class TodayFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        adapter = AppUsageAdapter(emptyList(), 0, requireContext().packageManager)
+        adapter = AppUsageAdapter(emptyList(), 0, requireContext().packageManager) { packageName, appName ->
+            val intent = Intent(requireContext(), AppDetailActivity::class.java).apply {
+                putExtra(AppDetailActivity.EXTRA_PACKAGE_NAME, packageName)
+                putExtra(AppDetailActivity.EXTRA_APP_NAME, appName)
+            }
+            startActivity(intent)
+        }
         binding.rvAppList.layoutManager = LinearLayoutManager(requireContext())
         binding.rvAppList.adapter = adapter
 

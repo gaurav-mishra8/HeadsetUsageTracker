@@ -47,6 +47,11 @@
             android:theme="@style/Theme.HeadphoneTracker" />
         
         <activity
+            android:name=".AppDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.HeadphoneTracker" />
+
+        <activity
             android:name=".OnboardingActivity"
             android:exported="false"
             android:theme="@style/Theme.HeadphoneTracker"
