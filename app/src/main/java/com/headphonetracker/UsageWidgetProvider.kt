@@ -79,6 +79,11 @@ class UsageWidgetProvider : AppWidgetProvider() {
                 val totalDuration = withContext(Dispatchers.IO) {
                     dao.getTotalUsageForDate(today) ?: 0L
                 }
+                val weightedMinutes = withContext(Dispatchers.IO) {
+                    dao.getWeightedExposureMinutes(today) ?: 0f
+                }
+                val budgetPct = EarHealthCalculator.budgetPercent(weightedMinutes).coerceAtMost(100)
+                val budgetColor = EarHealthCalculator.statusColor(budgetPct)
 
                 val isTracking = settingsRepository.isTracking()
                 val currentAppName = settingsRepository.getCurrentTrackingAppName()
@@ -99,6 +104,11 @@ class UsageWidgetProvider : AppWidgetProvider() {
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
 
+                val isGreen = budgetPct < 60
+                val isAmber = budgetPct in 60..84
+                val isRed = budgetPct >= 85
+                val budgetLabel = EarHealthCalculator.scoreGrade(EarHealthCalculator.score(weightedMinutes))
+
                 val views = RemoteViews(context.packageName, R.layout.widget_usage).apply {
                     setTextViewText(R.id.tvWidgetTime, formatDuration(totalDuration))
                     setTextViewText(R.id.tvWidgetStatus, if (isTracking) "● Tracking" else "● Inactive")
@@ -107,6 +117,14 @@ class UsageWidgetProvider : AppWidgetProvider() {
                         if (isTracking && currentAppName.isNotEmpty()) "▶ $currentAppName" else ""
                     )
                     setTextViewText(R.id.btnWidgetToggle, if (isTracking) "Stop" else "Start")
+                    // Budget progress bar — show exactly one colored variant
+                    setViewVisibility(R.id.progressBudgetGreen, if (isGreen) android.view.View.VISIBLE else android.view.View.GONE)
+                    setViewVisibility(R.id.progressBudgetAmber, if (isAmber) android.view.View.VISIBLE else android.view.View.GONE)
+                    setViewVisibility(R.id.progressBudgetRed, if (isRed) android.view.View.VISIBLE else android.view.View.GONE)
+                    setProgressBar(R.id.progressBudgetGreen, 100, if (isGreen) budgetPct else 0, false)
+                    setProgressBar(R.id.progressBudgetAmber, 100, if (isAmber) budgetPct else 0, false)
+                    setProgressBar(R.id.progressBudgetRed, 100, if (isRed) budgetPct else 0, false)
+                    setTextViewText(R.id.tvWidgetBudget, "Ear: $budgetPct% used · $budgetLabel")
                     setOnClickPendingIntent(R.id.tvWidgetTime, openIntent)
                     setOnClickPendingIntent(R.id.btnWidgetToggle, toggleIntent)
                 }

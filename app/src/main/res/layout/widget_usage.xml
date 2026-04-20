@@ -43,6 +43,48 @@
         android:maxLines="1"
         android:ellipsize="end" />
 
+    <!-- Ear health budget bar — three pre-tinted variants, toggled by visibility -->
+    <ProgressBar
+        android:id="@+id/progressBudgetGreen"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginHorizontal="4dp"
+        android:max="100"
+        android:progress="0"
+        android:progressDrawable="@drawable/widget_budget_green"
+        android:visibility="visible" />
+    <ProgressBar
+        android:id="@+id/progressBudgetAmber"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:layout_marginHorizontal="4dp"
+        android:max="100"
+        android:progress="0"
+        android:progressDrawable="@drawable/widget_budget_amber"
+        android:visibility="gone" />
+    <ProgressBar
+        android:id="@+id/progressBudgetRed"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:layout_marginHorizontal="4dp"
+        android:max="100"
+        android:progress="0"
+        android:progressDrawable="@drawable/widget_budget_red"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tvWidgetBudget"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="Ear budget: 0%"
+        android:textSize="9sp"
+        android:textColor="#66FFFFFF" />
+
     <TextView
         android:id="@+id/tvWidgetStatus"
         android:layout_width="wrap_content"
