@@ -53,6 +53,7 @@ class HeadphoneTrackingService : LifecycleService() {
     private var lastPackageName: String? = null
     private var lastAudioApp: String? = null  // Last app that was confirmed playing audio
     private var lastSaveTime: Long = 0
+    private var currentSessionVolume: Float? = null // volume at session start
     private var lastBreakReminder: Long = 0
     private var lastLimitWarning: Long = 0
     private var lastMilestoneCheck: Long = 0
@@ -360,11 +361,12 @@ class HeadphoneTrackingService : LifecycleService() {
                         saveSession(lastPackageName!!, currentSessionStart, currentTime)
                     }
 
-                    // Start new session
+                    // Start new session — capture volume at session start
                     lastPackageName = currentPackage
                     currentSessionStart = currentTime
                     lastSaveTime = currentTime
-                    Log.d(TAG, "Started new session for $currentPackage")
+                    currentSessionVolume = captureCurrentVolume()
+                    Log.d(TAG, "Started new session for $currentPackage at volume=$currentSessionVolume")
 
                     // Persist current app name for widget
                     val appLabel = try {
@@ -378,9 +380,10 @@ class HeadphoneTrackingService : LifecycleService() {
                             "duration=${currentTime - currentSessionStart}ms"
                         Log.d(TAG, incMsg)
                         saveSession(currentPackage, currentSessionStart, currentTime)
-                        // Update session start for next increment
+                        // Update session start for next increment; refresh volume in case it changed
                         currentSessionStart = currentTime
                         lastSaveTime = currentTime
+                        currentSessionVolume = captureCurrentVolume()
                     }
                 }
             } else if (!shouldTrack && lastPackageName != null && currentSessionStart > 0) {
@@ -620,6 +623,13 @@ class HeadphoneTrackingService : LifecycleService() {
         return isMusicActive || isInCall
     }
 
+    private fun captureCurrentVolume(): Float? {
+        val max = audioManager.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC)
+        if (max <= 0) return null
+        val current = audioManager.getStreamVolume(android.media.AudioManager.STREAM_MUSIC)
+        return current.toFloat() / max.toFloat()
+    }
+
     private suspend fun saveSession(packageName: String, startTime: Long, endTime: Long) {
         if (endTime <= startTime) {
             Log.w(TAG, "saveSession: endTime <= startTime, skipping")
@@ -651,7 +661,8 @@ class HeadphoneTrackingService : LifecycleService() {
                 startTime = startTime,
                 endTime = endTime,
                 duration = duration,
-                date = date
+                date = date,
+                volumePercent = currentSessionVolume
             )
 
             // Insert via injected DAO

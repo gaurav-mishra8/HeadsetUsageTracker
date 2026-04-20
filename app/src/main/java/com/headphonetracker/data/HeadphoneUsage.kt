@@ -19,5 +19,6 @@ data class HeadphoneUsage(
     val startTime: Long,
     val endTime: Long,
     val duration: Long, // in milliseconds
-    val date: String // YYYY-MM-DD format
+    val date: String, // YYYY-MM-DD format
+    val volumePercent: Float? = null // 0.0–1.0, null = unknown (treated as 70%)
 )

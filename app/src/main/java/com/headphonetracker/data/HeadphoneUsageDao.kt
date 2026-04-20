@@ -87,4 +87,35 @@ interface HeadphoneUsageDao {
 
     @Query("SELECT COUNT(DISTINCT date) FROM headphone_usage")
     suspend fun getTotalDaysWithUsage(): Int
+
+    /**
+     * Volume-weighted exposure in minutes for [date].
+     * Formula: (duration_ms / 60000) × (volumePercent / 0.8)²
+     * Unknown volume → treated as 0.7 (factor ≈ 0.766).
+     * Safe daily budget = 480 weighted-minutes (WHO 80 dB / 8 h reference).
+     */
+    @Query("""
+        SELECT SUM(
+            (duration / 60000.0) * CASE
+                WHEN volumePercent IS NULL   THEN 0.766
+                WHEN volumePercent <= 0.4    THEN 0.1
+                ELSE (volumePercent * volumePercent) / 0.64
+            END
+        ) FROM headphone_usage WHERE date = :date
+    """)
+    suspend fun getWeightedExposureMinutes(date: String): Float?
+
+    @Query("""
+        SELECT date,
+            SUM((duration / 60000.0) * CASE
+                WHEN volumePercent IS NULL   THEN 0.766
+                WHEN volumePercent <= 0.4    THEN 0.1
+                ELSE (volumePercent * volumePercent) / 0.64
+            END) as totalDuration
+        FROM headphone_usage
+        WHERE date >= date('now', '-6 days')
+        GROUP BY date
+        ORDER BY date DESC
+    """)
+    suspend fun getLast7DaysWeightedExposure(): List<DailyUsageSummary>
 }
