@@ -21,6 +21,66 @@
             android:fontFamily="sans-serif-medium"
             android:layout_marginBottom="16dp" />
 
+        <!-- Weekly Ear Budget Trend Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardBudgetTrend"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="@color/card_dark"
+            app:cardCornerRadius="20dp"
+            app:strokeWidth="0dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Ear Budget Trend"
+                        android:textSize="16sp"
+                        android:textColor="@color/text_primary"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <TextView
+                        android:id="@+id/tvAvgBudgetPct"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="avg 0%"
+                        android:textSize="13sp"
+                        android:textColor="@color/success"
+                        android:fontFamily="sans-serif-medium" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Daily WHO budget consumed (last 7 days)"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_tertiary"
+                    android:layout_marginBottom="16dp" />
+
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/budgetTrendChart"
+                    android:layout_width="match_parent"
+                    android:layout_height="160dp" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Streak Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"

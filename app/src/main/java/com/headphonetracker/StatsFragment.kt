@@ -1,5 +1,6 @@
 package com.headphonetracker
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -11,6 +12,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
@@ -58,15 +60,107 @@ class StatsFragment : Fragment() {
 
     private fun loadStats() {
         viewLifecycleOwner.lifecycleScope.launch {
-            // Single DB load — all subsequent functions operate on this cached list
             val allUsage = withContext(Dispatchers.IO) {
                 headphoneUsageDao.getAllUsage()
             }
+            loadBudgetTrend()
             loadStreaks(allUsage)
             loadWeekComparison(allUsage)
             loadHourlyChart(allUsage)
             loadCategories(allUsage)
             loadMonthlyStats(allUsage)
+        }
+    }
+
+    private fun loadBudgetTrend() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val weeklyExposure = withContext(Dispatchers.IO) {
+                headphoneUsageDao.getLast7DaysWeightedExposure()
+            }
+            if (_binding == null) return@launch
+
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val displayFormat = SimpleDateFormat("EEE", Locale.getDefault())
+
+            val entries = mutableListOf<BarEntry>()
+            val labels = mutableListOf<String>()
+            val colors = mutableListOf<Int>()
+
+            weeklyExposure.reversed().forEachIndexed { index, daily ->
+                val budgetPct = EarHealthCalculator.budgetPercent(daily.totalDuration.toFloat()).coerceAtMost(100)
+                entries.add(BarEntry(index.toFloat(), budgetPct.toFloat()))
+                colors.add(EarHealthCalculator.statusColor(budgetPct))
+                try {
+                    val date = dateFormat.parse(daily.date)
+                    labels.add(displayFormat.format(date ?: Date()))
+                } catch (e: Exception) {
+                    labels.add(daily.date)
+                }
+            }
+
+            if (entries.isEmpty()) return@launch
+
+            val avgPct = entries.map { it.y }.average().toInt()
+            binding.tvAvgBudgetPct.text = "avg $avgPct%"
+            binding.tvAvgBudgetPct.setTextColor(EarHealthCalculator.statusColor(avgPct))
+
+            val dataSet = BarDataSet(entries, "").apply {
+                setColors(colors)
+                setDrawValues(true)
+                valueTextColor = Color.parseColor("#94A3B8")
+                valueTextSize = 9f
+                valueFormatter = object : ValueFormatter() {
+                    override fun getFormattedValue(value: Float) = "${value.toInt()}%"
+                }
+            }
+
+            binding.budgetTrendChart.apply {
+                data = BarData(dataSet).apply { barWidth = 0.6f }
+                description.isEnabled = false
+                legend.isEnabled = false
+                setTouchEnabled(false)
+                setDrawGridBackground(false)
+                setDrawBarShadow(false)
+
+                xAxis.apply {
+                    position = XAxis.XAxisPosition.BOTTOM
+                    setDrawGridLines(false)
+                    setDrawAxisLine(false)
+                    textColor = Color.parseColor("#94A3B8")
+                    textSize = 10f
+                    granularity = 1f
+                    valueFormatter = object : ValueFormatter() {
+                        override fun getFormattedValue(value: Float): String {
+                            val idx = value.toInt()
+                            return if (idx >= 0 && idx < labels.size) labels[idx] else ""
+                        }
+                    }
+                }
+
+                axisLeft.apply {
+                    axisMinimum = 0f
+                    axisMaximum = 110f
+                    setDrawGridLines(true)
+                    gridColor = Color.parseColor("#1E293B")
+                    setDrawAxisLine(false)
+                    textColor = Color.parseColor("#64748B")
+                    textSize = 9f
+                    valueFormatter = object : ValueFormatter() {
+                        override fun getFormattedValue(value: Float) = "${value.toInt()}%"
+                    }
+                    addLimitLine(com.github.mikephil.charting.components.LimitLine(100f, "Limit").apply {
+                        lineColor = Color.parseColor("#EF4444")
+                        lineWidth = 1f
+                        textColor = Color.parseColor("#EF4444")
+                        textSize = 9f
+                        labelPosition = com.github.mikephil.charting.components.LimitLine.LimitLabelPosition.RIGHT_TOP
+                    })
+                }
+
+                axisRight.isEnabled = false
+                animateY(700, Easing.EaseInOutCubic)
+                invalidate()
+            }
         }
     }
 
