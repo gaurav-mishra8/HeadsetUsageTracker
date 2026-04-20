@@ -97,6 +97,7 @@ class TodayFragment : Fragment() {
         setupCharts()
         setupButton()
         setupExportButton()
+        setupShareReportButton()
         setupDateNavigation()
         setupPullToRefresh()
 
@@ -474,6 +475,30 @@ class TodayFragment : Fragment() {
                 .start()
 
             showExportDateRangePicker()
+        }
+    }
+
+    private fun setupShareReportButton() {
+        binding.btnShareReport.setOnClickListener {
+            HapticUtils.performClickFeedback(it)
+            shareWeeklyEarReport()
+        }
+    }
+
+    private fun shareWeeklyEarReport() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val weeklyExposure = withContext(Dispatchers.IO) {
+                headphoneUsageDao.getLast7DaysWeightedExposure()
+            }
+            val totalMs = withContext(Dispatchers.IO) {
+                val cal = java.util.Calendar.getInstance()
+                val endDate = dateFormat.format(cal.time)
+                cal.add(java.util.Calendar.DAY_OF_YEAR, -6)
+                val startDate = dateFormat.format(cal.time)
+                headphoneUsageDao.getUsageForDateRange(startDate, endDate)
+                    .sumOf { it.totalDuration }
+            }
+            EarReportCard.shareWeeklyReport(requireContext(), weeklyExposure, totalMs)
         }
     }
 
