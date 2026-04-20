@@ -37,27 +37,28 @@ class OnboardingActivity : AppCompatActivity() {
 
     private val pages = listOf(
         OnboardingPage(
-            iconRes = R.drawable.ic_headphones,
-            title = "Track Your Listening",
-            subtitle = "Know your habits",
-            content = "See exactly how long you use headphones and which apps play audio — all in one place."
+            iconRes = R.drawable.ic_shield,
+            title = "Guard Your Hearing",
+            subtitle = "1.1 billion people at risk",
+            content = "WHO estimates 1.1 billion young people risk permanent hearing loss from unsafe listening. EarGuard watches your daily exposure so you don't have to.",
+            trivia = "Noise-induced hearing loss is the only preventable kind — and it's irreversible."
         ),
         OnboardingPage(
             iconRes = R.drawable.ic_warning,
-            title = "Protect Your Hearing",
-            subtitle = "Stay within safe limits",
-            content = "Experts recommend no more than 60 minutes at 60% volume at a time.",
+            title = "The 8-Hour Rule",
+            subtitle = "Volume × time = damage",
+            content = "80 dB for 8 hours is the WHO safe daily limit. Every 3 dB louder cuts that time in half.",
             bulletPoints = listOf(
-                "Take a 10-min break every hour",
-                "Keep volume below 85 dB",
-                "Limit daily use to 2–3 hours"
+                "85 dB → safe for only 4 hours/day",
+                "94 dB → safe for only 1 hour/day",
+                "100 dB → safe for only 15 min/day"
             )
         ),
         OnboardingPage(
             iconRes = R.drawable.ic_headphones,
-            title = "You're All Set!",
-            subtitle = "Let's get started",
-            content = "Connect your headphones, tap Start Tracking, and we'll handle the rest."
+            title = "Your Ear Health Score",
+            subtitle = "Real-time protection",
+            content = "EarGuard calculates volume-weighted exposure every session and shows you a live Ear Health score — so you know when to take a break before the damage is done."
         )
     )
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Headphone Tracker</string>
+    <string name="app_name">EarGuard</string>
     <string name="tracking_status">Tracking Status</string>
     <string name="today_total">Today\'s Total</string>
     <string name="hours">Hours</string>
@@ -11,10 +11,16 @@
     <string name="usage_by_app">Usage by App</string>
     <string name="daily_stats">Daily Statistics</string>
     <string name="grant_permission">Grant Usage Access Permission</string>
-    <string name="permission_required">Usage Access permission is required to track headphone usage across apps.</string>
+    <string name="permission_required">Usage Access permission is required to track listening time across apps.</string>
     <string name="no_data">No data available</string>
-    <string name="service_notification_title">Headphone Usage Tracker</string>
-    <string name="service_notification_text">Tracking headphone usage across apps</string>
-    <string name="widget_description">Shows today\'s headphone usage at a glance</string>
+    <string name="service_notification_title">EarGuard</string>
+    <string name="service_notification_text">Protecting your hearing — tracking active</string>
+    <string name="widget_description">Shows today\'s ear health budget at a glance</string>
+    <string name="onboarding_title_1">Guard Your Hearing</string>
+    <string name="onboarding_body_1">WHO estimates 1.1 billion young people risk hearing loss from unsafe listening. EarGuard watches your daily exposure so you don\'t have to.</string>
+    <string name="onboarding_title_2">The 8-Hour Rule</string>
+    <string name="onboarding_body_2">80 dB for 8 hours is the safe daily limit. Every 3 dB louder halves the safe time. EarGuard calculates your real exposure using volume-weighted minutes.</string>
+    <string name="onboarding_title_3">Know Before It\'s Too Late</string>
+    <string name="onboarding_body_3">Hearing loss is permanent. EarGuard gives you a real-time Ear Health score so you can take breaks before you exceed your daily budget.</string>
 </resources>
 

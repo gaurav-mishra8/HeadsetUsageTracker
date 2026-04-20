@@ -39,7 +39,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Headphone"
+                        android:text="EarGuard"
                         android:textSize="28sp"
                         android:textColor="@color/text_primary"
                         android:fontFamily="sans-serif-medium" />
@@ -47,10 +47,10 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Tracker"
-                        android:textSize="28sp"
-                        android:textColor="@color/primary_light"
-                        android:fontFamily="sans-serif-medium" />
+                        android:text="Protect your hearing"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_tertiary"
+                        android:fontFamily="sans-serif" />
 
                 </LinearLayout>
 

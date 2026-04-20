@@ -88,7 +88,7 @@ class DriveSyncManager(private val context: Context) {
             AndroidHttp.newCompatibleTransport(),
             GsonFactory.getDefaultInstance(),
             credential
-        ).setApplicationName("Headphone Tracker").build()
+        ).setApplicationName("EarGuard").build()
     }
 
     private fun findBackupFile(driveService: Drive): DriveFile? {
