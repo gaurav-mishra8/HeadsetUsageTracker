@@ -135,6 +135,7 @@ class TodayFragment : Fragment() {
     private fun animateCardsOnLoad() {
         val cards = listOf(
             binding.cardTodayUsage,
+            binding.cardEarHealth,
             binding.cardPieChart,
             binding.cardBarChart
         )
@@ -285,6 +286,7 @@ class TodayFragment : Fragment() {
             }
 
             binding.swipeRefresh.isRefreshing = false
+            loadEarHealth()
         }
     }
 
@@ -573,6 +575,7 @@ class TodayFragment : Fragment() {
 
     private fun loadData(showLoading: Boolean = true) {
         loadDataForSelectedDate(showLoading)
+        loadEarHealth()
 
         viewLifecycleOwner.lifecycleScope.launch {
             val last7Days = withContext(Dispatchers.IO) {
@@ -581,6 +584,37 @@ class TodayFragment : Fragment() {
             cachedWeeklyData = last7Days
             updateBarChart(last7Days)
         }
+    }
+
+    private fun loadEarHealth() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val dateString = dateFormat.format(selectedDate.time)
+            val weightedMinutes = withContext(Dispatchers.IO) {
+                headphoneUsageDao.getWeightedExposureMinutes(dateString) ?: 0f
+            }
+            updateEarHealthCard(weightedMinutes)
+        }
+    }
+
+    private fun updateEarHealthCard(weightedMinutes: Float) {
+        if (_binding == null) return
+        val budgetPct = EarHealthCalculator.budgetPercent(weightedMinutes)
+        val score = EarHealthCalculator.score(weightedMinutes)
+        val color = EarHealthCalculator.statusColor(budgetPct)
+
+        binding.tvEarScore.text = score.toString()
+        binding.tvEarScore.setTextColor(color)
+        binding.tvEarScoreGrade.text = EarHealthCalculator.scoreGrade(score)
+        binding.tvEarHealthMessage.text = EarHealthCalculator.statusMessage(budgetPct)
+        binding.tvBudgetUsed.text = "$budgetPct% of daily budget used"
+
+        // Tint the progress bar fill to match status color
+        val progressDrawable = binding.progressEarBudget.progressDrawable.mutate()
+        val clip = (progressDrawable as? android.graphics.drawable.LayerDrawable)
+            ?.findDrawableByLayerId(android.R.id.progress)
+        clip?.setTint(color)
+        binding.progressEarBudget.progressDrawable = progressDrawable
+        binding.progressEarBudget.progress = budgetPct.coerceAtMost(100)
     }
 
     private fun animateTotalTime(newDuration: Long) {
